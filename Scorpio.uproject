@@ -1,13 +1,16 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.0",
+	"EngineAssociation": "{7BED5E5C-4009-3E1D-DA31-B78A9F1B51BB}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
 		{
 			"Name": "Scorpio",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		}
 	],
 	"Plugins": [
