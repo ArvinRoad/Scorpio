@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponBaseClien.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "WeaponBaseServer.generated.h"
@@ -32,6 +33,10 @@ public:
 	/* 碰撞体 */
 	UPROPERTY(EditAnywhere)
 	USphereComponent* SphereCollision;
+
+	/* 动态创建第一人称客户端武器 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSubclassOf<AWeaponBaseClien> ClientWeaponBaseBPClass;
 
 	UFUNCTION()
 	void OnOtherBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);

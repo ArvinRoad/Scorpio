@@ -50,6 +50,10 @@ private:
 	UPROPERTY(meta=(AllowPrivateAccess = "ture"))
 	AWeaponBaseServer* ServerPrimaryWeapon;	// 服务器主武器的指针
 
+	/* 接收ServerPrimaryWeapon  */
+	UPROPERTY(meta=(AllowPrivateAccess = "true"))
+	AWeaponBaseClien* ClientPrimaryWeapon;
+
 #pragma endregion 
 	
 	virtual void Tick(float DeltaTime) override;
@@ -70,5 +74,9 @@ public:
 	void ServerNormalSpeedWalkAction_Implementation();
 	bool ServerNormalSpeedWalkAction_Validate();
 
+	/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
+	UFUNCTION(Client,Reliable)
+	void ClientEquipFPArmsPrimary();
+	
 #pragma endregion 
 };

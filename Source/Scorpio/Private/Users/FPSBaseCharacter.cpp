@@ -70,6 +70,24 @@ bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
 
+/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
+void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
+	if(ServerPrimaryWeapon) {
+		/* 如果客户端以及有了 那就不用创建了 */
+		if(ClientPrimaryWeapon) {
+			
+		}else {
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Owner = this;
+			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			ClientPrimaryWeapon = GetWorld()->SpawnActor<AWeaponBaseClien>(ServerPrimaryWeapon->ClientWeaponBaseBPClass,GetActorTransform(),SpawnInfo);
+			ClientPrimaryWeapon->K2_AttachToComponent(FPArmsMesh,TEXT("WeaponSocket"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);
+
+			/* 手臂动画 */
+		}
+	}
+}
+
 #pragma endregion 
 
 /* 键盘输入事件 */
@@ -110,7 +128,7 @@ void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
 		ServerPrimaryWeapon = WeaponBaseServer;
 		ServerPrimaryWeapon->SetOwner(this);
 		ServerPrimaryWeapon->K2_AttachToComponent(Mesh,TEXT("Weapon_Rifle"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 添加到第三人称上
-		
+		ClientEquipFPArmsPrimary();	// 让客户端去生成
 	}
 }
 #pragma endregion 
