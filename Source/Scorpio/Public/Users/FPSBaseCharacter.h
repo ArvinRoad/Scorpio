@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -13,14 +11,13 @@ class SCORPIO_API AFPSBaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AFPSBaseCharacter();
 
 
-	/**	函数说明：
-	 *  PlayerCamera 摄像机组件
-	 *  FPArmsMesh   手臂
-	 */
+/**	函数说明：
+ *  PlayerCamera 摄像机组件
+ *  FPArmsMesh   手臂
+ */
 #pragma region component
 private:
 	UPROPERTY(Category=Character,VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess = "true"))
@@ -31,14 +28,15 @@ private:
 #pragma endregion 
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+/* 键盘输入事件 */
+#pragma region InputEvent
+	void MoveForward(float AxisValue);
+	void MoveRight(float AxisValue);
+#pragma endregion 
+
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 };
