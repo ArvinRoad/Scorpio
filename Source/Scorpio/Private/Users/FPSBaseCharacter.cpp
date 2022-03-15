@@ -40,6 +40,9 @@ void AFPSBaseCharacter::Tick(float DeltaTime)
 void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	InputComponent->BindAction(TEXT("Jump"),IE_Pressed,this,&AFPSBaseCharacter::JumpAction);
+	InputComponent->BindAction(TEXT("Jump"),IE_Released,this,&AFPSBaseCharacter::StopJumpAction);
 	
 	InputComponent->BindAxis(TEXT("MoveForward"),this,&AFPSBaseCharacter::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"),this,&AFPSBaseCharacter::MoveRight);
@@ -55,5 +58,13 @@ void AFPSBaseCharacter::MoveForward(float AxisValue) {
 }
 void AFPSBaseCharacter::MoveRight(float AxisValue) {
 	AddMovementInput(GetActorRightVector(),AxisValue,false);
+}
+
+void AFPSBaseCharacter::JumpAction() {
+	Jump();
+}
+
+void AFPSBaseCharacter::StopJumpAction() {
+	StopJumping();
 }
 #pragma endregion 
