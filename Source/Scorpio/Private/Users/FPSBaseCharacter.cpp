@@ -1,5 +1,7 @@
 #include "Scorpio/Public/Users/FPSBaseCharacter.h"
 
+#include "GameFramework/CharacterMovementComponent.h"
+
 AFPSBaseCharacter::AFPSBaseCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -41,6 +43,8 @@ void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	InputComponent->BindAction(TEXT("LowSpeedWalk"),IE_Pressed,this,&AFPSBaseCharacter::LowSpeedWalkAction);
+	InputComponent->BindAction(TEXT("LowSpeedWalk"),IE_Released,this,&AFPSBaseCharacter::NormalSpeedWalkAction);
 	InputComponent->BindAction(TEXT("Jump"),IE_Pressed,this,&AFPSBaseCharacter::JumpAction);
 	InputComponent->BindAction(TEXT("Jump"),IE_Released,this,&AFPSBaseCharacter::StopJumpAction);
 	
@@ -50,6 +54,23 @@ void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	InputComponent->BindAxis(TEXT("LookUp"),this,&AFPSBaseCharacter::AddControllerPitchInput);
 	
 }
+
+#pragma region NetWorking
+/* 静步服务器同步 */
+void AFPSBaseCharacter::ServerLowSpeedWalkAction_Implementation() {
+	CharacterMovement->MaxWalkSpeed = 300;
+}
+bool AFPSBaseCharacter::ServerLowSpeedWalkAction_Validate() {
+	return true;
+}
+void AFPSBaseCharacter::ServerNormalSpeedWalkAction_Implementation() {
+	CharacterMovement->MaxWalkSpeed = 600;
+}
+bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
+	return true;
+}
+
+#pragma endregion 
 
 /* 键盘输入事件 */
 #pragma region InputEvent
@@ -66,5 +87,15 @@ void AFPSBaseCharacter::JumpAction() {
 
 void AFPSBaseCharacter::StopJumpAction() {
 	StopJumping();
+}
+
+void AFPSBaseCharacter::LowSpeedWalkAction() {
+	CharacterMovement->MaxWalkSpeed = 300;
+	ServerLowSpeedWalkAction();
+}
+
+void AFPSBaseCharacter::NormalSpeedWalkAction() {
+	CharacterMovement->MaxWalkSpeed = 600;
+	ServerNormalSpeedWalkAction();
 }
 #pragma endregion 
