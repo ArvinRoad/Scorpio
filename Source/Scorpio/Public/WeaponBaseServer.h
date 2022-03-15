@@ -32,6 +32,13 @@ public:
 	/* 碰撞体 */
 	UPROPERTY(EditAnywhere)
 	USphereComponent* SphereCollision;
+
+	UFUNCTION()
+	void OnOtherBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+
+	/* 卸载碰撞 物理 重力 */
+	UFUNCTION()
+	void EquipWeapon();
 	
 protected:
 	virtual void BeginPlay() override;

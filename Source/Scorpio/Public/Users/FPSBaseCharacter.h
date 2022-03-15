@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "WeaponBaseServer.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "FPSBaseCharacter.generated.h"
@@ -39,9 +40,18 @@ protected:
 	void StopJumpAction();
 	void LowSpeedWalkAction();		// 低速
 	void NormalSpeedWalkAction();	// 正常速度
-#pragma endregion 
+#pragma endregion
+	
+/* 武器相关 */
+#pragma region Weapon
+public:
+	void EquipPrimary(AWeaponBaseServer* WeaponBaseServer);	// 主武器
+private:
+	UPROPERTY(meta=(AllowPrivateAccess = "ture"))
+	AWeaponBaseServer* ServerPrimaryWeapon;	// 服务器主武器的指针
 
-public:	
+#pragma endregion 
+	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 

@@ -98,4 +98,19 @@ void AFPSBaseCharacter::NormalSpeedWalkAction() {
 	CharacterMovement->MaxWalkSpeed = 600;
 	ServerNormalSpeedWalkAction();
 }
+
+#pragma endregion
+
+#pragma region Weapon
+/* 玩家装备武器 */
+void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
+	if(ServerPrimaryWeapon) {
+		
+	}else {
+		ServerPrimaryWeapon = WeaponBaseServer;
+		ServerPrimaryWeapon->SetOwner(this);
+		ServerPrimaryWeapon->K2_AttachToComponent(Mesh,TEXT("Weapon_Rifle"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 添加到第三人称上
+		
+	}
+}
 #pragma endregion 
