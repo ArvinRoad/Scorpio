@@ -73,6 +73,15 @@ void AFPSBaseCharacter::ServerNormalSpeedWalkAction_Implementation() {
 bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
+/* 枪体动画 */
+void AFPSBaseCharacter::ClientFire_Implementation() {
+	/* 枪体动画 */
+	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
+	if(CurrentClientWeapon) {
+		CurrentClientWeapon->PlayShootAnimation();
+	}
+}
+
 /* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 	if(ServerPrimaryWeapon) {
@@ -85,16 +94,7 @@ void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			ClientPrimaryWeapon = GetWorld()->SpawnActor<AWeaponBaseClien>(ServerPrimaryWeapon->ClientWeaponBaseBPClass,GetActorTransform(),SpawnInfo);
 			ClientPrimaryWeapon->K2_AttachToComponent(FPArmsMesh,TEXT("WeaponSocket"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);
-
-			/* 手臂动画 */
 		}
-	}
-}
-/* 枪体动画 */
-void AFPSBaseCharacter::ClientFire() {
-	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClienFPArmsWeaponAction();
-	if(CurrentClientWeapon) {
-		CurrentClientWeapon->PlayShootAnimation();
 	}
 }
 #pragma endregion 
@@ -183,7 +183,7 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 	}
 }
 
-AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClienFPArmsWeaponAction(){
+AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 	switch(ActiveWeapon) {
 		case EWeaponType::AK47: {
 				return ClientPrimaryWeapon;

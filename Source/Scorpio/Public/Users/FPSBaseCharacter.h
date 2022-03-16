@@ -64,7 +64,7 @@ private:
 	void PurchaseWeapon(EWeaponType WeaponType);
 
 	/* 现在使用客户端武器的指针 */
-	AWeaponBaseClien* GetCurrentClienFPArmsWeaponAction();
+	AWeaponBaseClien* GetCurrentClientFPArmsWeaponAction();
 	
 #pragma endregion
 	
@@ -101,6 +101,7 @@ public:
 	void ClientEquipFPArmsPrimary();
 
 	/* 枪体动画 */
+	UFUNCTION(Client,Reliable)
 	void ClientFire();
 	
 #pragma endregion 
