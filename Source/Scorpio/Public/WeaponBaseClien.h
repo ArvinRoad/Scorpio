@@ -12,7 +12,7 @@ class SCORPIO_API AWeaponBaseClien : public AActor
 public:	
 	AWeaponBaseClien();
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	USkeletalMeshComponent* WeaponMesh;
 	
 
@@ -22,4 +22,7 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
+	/* 枪体动画 这个方法在Cpp声明在蓝图实现 */
+	UFUNCTION(BlueprintImplementableEvent,Category = "FPGunAnimation")
+	void PlayShootAnimation();
 };

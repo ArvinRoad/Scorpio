@@ -23,10 +23,11 @@ AFPSBaseCharacter::AFPSBaseCharacter()
 
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Mesh->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
-#pragma endregion 
-
+#pragma endregion
+	
 }
 
+#pragma region Engine
 void AFPSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -56,6 +57,7 @@ void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	InputComponent->BindAxis(TEXT("LookUp"),this,&AFPSBaseCharacter::AddControllerPitchInput);
 	
 }
+#pragma endregion 
 
 #pragma region NetWorking
 /* 静步服务器同步 */
@@ -71,7 +73,6 @@ void AFPSBaseCharacter::ServerNormalSpeedWalkAction_Implementation() {
 bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
-
 /* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 	if(ServerPrimaryWeapon) {
@@ -89,7 +90,13 @@ void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 		}
 	}
 }
-
+/* 枪体动画 */
+void AFPSBaseCharacter::ClientFire() {
+	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClienFPArmsWeaponAction();
+	if(CurrentClientWeapon) {
+		CurrentClientWeapon->PlayShootAnimation();
+	}
+}
 #pragma endregion 
 
 /* 键盘输入事件 */
@@ -175,6 +182,15 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 			}
 	}
 }
+
+AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClienFPArmsWeaponAction(){
+	switch(ActiveWeapon) {
+		case EWeaponType::AK47: {
+				return ClientPrimaryWeapon;
+			}
+	}
+	return nullptr;
+}
 #pragma endregion 
 
 /* 换弹与射击相关 */
@@ -182,9 +198,9 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 void AFPSBaseCharacter::FireWeaponPrimary() {
 	UE_LOG(LogTemp,Warning,TEXT("射击中:void AFPSBaseCharacter::FireWeaponPrimary()"));
 	// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成
-
+	
 	// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
-
+	ClientFire();
 	// 射击模式：连发 | 单射 | 点发
 }
 void AFPSBaseCharacter::StopFirePrimary() {

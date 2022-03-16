@@ -63,6 +63,9 @@ private:
 	void StartWithKindOfWeapon();
 	void PurchaseWeapon(EWeaponType WeaponType);
 
+	/* 现在使用客户端武器的指针 */
+	AWeaponBaseClien* GetCurrentClienFPArmsWeaponAction();
+	
 #pragma endregion
 	
 private:
@@ -96,6 +99,9 @@ public:
 	/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 	UFUNCTION(Client,Reliable)
 	void ClientEquipFPArmsPrimary();
+
+	/* 枪体动画 */
+	void ClientFire();
 	
 #pragma endregion 
 };
