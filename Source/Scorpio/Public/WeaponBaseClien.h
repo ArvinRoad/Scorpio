@@ -22,6 +22,10 @@ public:
 	/* 声效引用 */
 	UPROPERTY(EditAnywhere)
 	USoundBase* FireSound;
+
+	/* 射击特效 */
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* MuzzleFlash;
 	
 protected:
 	virtual void BeginPlay() override;
