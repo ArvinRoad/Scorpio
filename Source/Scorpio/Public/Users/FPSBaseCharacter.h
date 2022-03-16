@@ -26,6 +26,10 @@ private:
 
 	UPROPERTY(Category=Character,VisibleAnywhere,BlueprintReadOnly,meta=(AllowPrivateAccess="true"));
 	USkeletalMeshComponent* FPArmsMesh;
+
+	/* 动画蓝图 */
+	UAnimInstance* ClientArmsEnemyBP;
+
 #pragma endregion 
 
 protected:

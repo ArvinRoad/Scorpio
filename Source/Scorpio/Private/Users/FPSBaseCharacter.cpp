@@ -32,6 +32,7 @@ void AFPSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
+	ClientArmsEnemyBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画
 }
 
 void AFPSBaseCharacter::Tick(float DeltaTime)
@@ -73,13 +74,18 @@ void AFPSBaseCharacter::ServerNormalSpeedWalkAction_Implementation() {
 bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
-/* 枪体动画 */
 void AFPSBaseCharacter::ClientFire_Implementation() {
 	/* 枪体动画 */
 	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
 	if(CurrentClientWeapon) {
 		CurrentClientWeapon->PlayShootAnimation();
 	}
+
+	/* 手臂的播放动画 蒙太奇 */
+	UAnimMontage* ClientArmsFireMontage = CurrentClientWeapon->ClientArmsFireAnimMontage;
+	ClientArmsEnemyBP->Montage_SetPlayRate(ClientArmsFireMontage,1);	// 蒙太奇动画速率 1 倍速
+	ClientArmsEnemyBP->Montage_Play(ClientArmsFireMontage);
+	
 }
 
 /* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */

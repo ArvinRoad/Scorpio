@@ -14,8 +14,11 @@ public:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	USkeletalMeshComponent* WeaponMesh;
-	
 
+	/* 持有动画蒙太奇(射击) */
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* ClientArmsFireAnimMontage;
+	
 protected:
 	virtual void BeginPlay() override;
 
