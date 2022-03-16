@@ -85,6 +85,9 @@ void AFPSBaseCharacter::ClientFire_Implementation() {
 	UAnimMontage* ClientArmsFireMontage = CurrentClientWeapon->ClientArmsFireAnimMontage;
 	ClientArmsEnemyBP->Montage_SetPlayRate(ClientArmsFireMontage,1);	// 蒙太奇动画速率 1 倍速
 	ClientArmsEnemyBP->Montage_Play(ClientArmsFireMontage);
+
+	/* 射击声效 */
+	CurrentClientWeapon->DisplayWeaponEffect();
 	
 }
 

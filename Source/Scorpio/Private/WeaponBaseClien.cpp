@@ -1,5 +1,7 @@
 #include "WeaponBaseClien.h"
 
+#include "Kismet/GameplayStatics.h"
+
 AWeaponBaseClien::AWeaponBaseClien()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -20,5 +22,9 @@ void AWeaponBaseClien::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AWeaponBaseClien::DisplayWeaponEffect() {
+	UGameplayStatics::PlaySound2D(GetWorld(),FireSound);	// 客户端自身射击声音 所以采用2D
 }
 
