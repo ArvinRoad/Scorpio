@@ -30,7 +30,7 @@ AFPSBaseCharacter::AFPSBaseCharacter()
 void AFPSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
 }
 
 void AFPSBaseCharacter::Tick(float DeltaTime)
@@ -131,4 +131,33 @@ void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
 		ClientEquipFPArmsPrimary();	// 让客户端去生成
 	}
 }
+
+/* 开局自带枪 */
+void AFPSBaseCharacter::StartWithKindOfWeapon() {
+	/* 判断当前代码对人物是否有主控权，有主控权就是在服务器下发的指令 如果是服务器就购买武器 */
+	if(HasAuthority()) {
+		PurchaseWeapon(EWeaponType::AK47);	// 开局枪类型
+	}
+}
+
+void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Owner = this;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	switch (WeaponType) {
+		case EWeaponType::AK47: {
+				/* 动态获取AK47 Server类 */
+				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/AK47/ServerBP_AK47.ServerBP_AK47_C'"));	// 引用后加上_C才能获取(代表一个Class)
+				AWeaponBaseServer* ServerWeapon =  GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
+				ServerWeapon->EquipWeapon();	// 主动卸载碰撞
+				EquipPrimary(ServerWeapon);
+			}
+			break;
+		default: {
+				
+			}
+	}
+}
+
 #pragma endregion 

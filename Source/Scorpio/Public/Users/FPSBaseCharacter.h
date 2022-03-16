@@ -54,11 +54,15 @@ private:
 	UPROPERTY(meta=(AllowPrivateAccess = "true"))
 	AWeaponBaseClien* ClientPrimaryWeapon;
 
+	/* 使用某个枪开始 */
+	void StartWithKindOfWeapon();
+	void PurchaseWeapon(EWeaponType WeaponType);
+
 #pragma endregion 
 	
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+	
 	/* 服务器同步交互 */
 public:
 #pragma region NetWorking
