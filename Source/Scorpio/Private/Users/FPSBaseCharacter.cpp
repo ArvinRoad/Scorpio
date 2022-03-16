@@ -47,6 +47,8 @@ void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	InputComponent->BindAction(TEXT("LowSpeedWalk"),IE_Released,this,&AFPSBaseCharacter::NormalSpeedWalkAction);
 	InputComponent->BindAction(TEXT("Jump"),IE_Pressed,this,&AFPSBaseCharacter::JumpAction);
 	InputComponent->BindAction(TEXT("Jump"),IE_Released,this,&AFPSBaseCharacter::StopJumpAction);
+	InputComponent->BindAction(TEXT("Fire"),IE_Pressed,this,&AFPSBaseCharacter::InputFirePressed);
+	InputComponent->BindAction(TEXT("Fire"),IE_Released,this,&AFPSBaseCharacter::InputFireReleased);
 	
 	InputComponent->BindAxis(TEXT("MoveForward"),this,&AFPSBaseCharacter::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"),this,&AFPSBaseCharacter::MoveRight);
@@ -102,16 +104,30 @@ void AFPSBaseCharacter::MoveRight(float AxisValue) {
 void AFPSBaseCharacter::JumpAction() {
 	Jump();
 }
-
 void AFPSBaseCharacter::StopJumpAction() {
 	StopJumping();
 }
-
+void AFPSBaseCharacter::InputFirePressed() {
+	/* 根据当前武器类型选择方法 */
+	switch(ActiveWeapon) {
+		case EWeaponType::AK47: {
+				FireWeaponPrimary();
+			}
+	}
+}
+void AFPSBaseCharacter::InputFireReleased() {
+	/* 根据当前武器类型选择方法 */
+	switch (ActiveWeapon) {
+		case EWeaponType::AK47: {
+				StopFirePrimary();
+			}
+	}
+	
+}
 void AFPSBaseCharacter::LowSpeedWalkAction() {
 	CharacterMovement->MaxWalkSpeed = 300;
 	ServerLowSpeedWalkAction();
 }
-
 void AFPSBaseCharacter::NormalSpeedWalkAction() {
 	CharacterMovement->MaxWalkSpeed = 600;
 	ServerNormalSpeedWalkAction();
@@ -159,5 +175,19 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 			}
 	}
 }
-
 #pragma endregion 
+
+/* 换弹与射击相关 */
+#pragma region Fire
+void AFPSBaseCharacter::FireWeaponPrimary() {
+	UE_LOG(LogTemp,Warning,TEXT("射击中:void AFPSBaseCharacter::FireWeaponPrimary()"));
+	// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成
+
+	// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
+
+	// 射击模式：连发 | 单射 | 点发
+}
+void AFPSBaseCharacter::StopFirePrimary() {
+	// 析构FireWeaponPrimary 参数
+}
+#pragma endregion

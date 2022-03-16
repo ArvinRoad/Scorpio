@@ -38,6 +38,8 @@ protected:
 	
 	void JumpAction();
 	void StopJumpAction();
+	void InputFirePressed();	// 鼠标左键按下的回调
+	void InputFireReleased();	// 鼠标左键松手松手
 	void LowSpeedWalkAction();		// 低速
 	void NormalSpeedWalkAction();	// 正常速度
 #pragma endregion
@@ -47,7 +49,10 @@ protected:
 public:
 	void EquipPrimary(AWeaponBaseServer* WeaponBaseServer);	// 主武器
 private:
-	UPROPERTY(meta=(AllowPrivateAccess = "ture"))
+	UPROPERTY(EditAnywhere,meta=(AllowPrivateAccess = "true"))		// 后面去掉UPROPETY 当前没初始化
+	EWeaponType ActiveWeapon;	// 当前使用武器类型
+	
+	UPROPERTY(meta=(AllowPrivateAccess = "true"))
 	AWeaponBaseServer* ServerPrimaryWeapon;	// 服务器主武器的指针
 
 	/* 接收ServerPrimaryWeapon  */
@@ -58,11 +63,21 @@ private:
 	void StartWithKindOfWeapon();
 	void PurchaseWeapon(EWeaponType WeaponType);
 
-#pragma endregion 
+#pragma endregion
 	
+private:
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
+	/* 键盘绑定事件 */
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+/* 换弹与射击相关 */
+#pragma region Fire
+public:
+	void FireWeaponPrimary();	// 步枪射击方法
+	void StopFirePrimary();	// 步枪停止射击回复事件
+#pragma endregion
+
 	/* 服务器同步交互 */
 public:
 #pragma region NetWorking
