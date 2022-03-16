@@ -33,6 +33,7 @@ void AFPSBaseCharacter::BeginPlay()
 	Super::BeginPlay();
 	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
 	ClientArmsEnemyBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画
+	FPSPlayerController = Cast<AFPSPlayerController>(GetController());	// 持有AFPSPlayerController类型指针 屏幕抖动
 }
 
 void AFPSBaseCharacter::Tick(float DeltaTime)
@@ -75,20 +76,22 @@ bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
 void AFPSBaseCharacter::ClientFire_Implementation() {
-	/* 枪体动画 */
 	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
 	if(CurrentClientWeapon) {
+		/* 枪体动画 */
 		CurrentClientWeapon->PlayShootAnimation();
+		
+		/* 手臂的播放动画 蒙太奇 */
+		UAnimMontage* ClientArmsFireMontage = CurrentClientWeapon->ClientArmsFireAnimMontage;
+		ClientArmsEnemyBP->Montage_SetPlayRate(ClientArmsFireMontage,1);	// 蒙太奇动画速率 1 倍速
+		ClientArmsEnemyBP->Montage_Play(ClientArmsFireMontage);
+
+		/* 射击声效 */
+		CurrentClientWeapon->DisplayWeaponEffect();
+
+		/* 屏幕抖动 */
+		FPSPlayerController->PlayerCameraShake(CurrentClientWeapon->CameraShakeClass);
 	}
-
-	/* 手臂的播放动画 蒙太奇 */
-	UAnimMontage* ClientArmsFireMontage = CurrentClientWeapon->ClientArmsFireAnimMontage;
-	ClientArmsEnemyBP->Montage_SetPlayRate(ClientArmsFireMontage,1);	// 蒙太奇动画速率 1 倍速
-	ClientArmsEnemyBP->Montage_Play(ClientArmsFireMontage);
-
-	/* 射击声效 */
-	CurrentClientWeapon->DisplayWeaponEffect();
-	
 }
 
 /* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */

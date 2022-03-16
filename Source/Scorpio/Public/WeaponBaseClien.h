@@ -26,6 +26,10 @@ public:
 	/* 射击特效 */
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* MuzzleFlash;
+
+	/* 枪类型射击屏幕抖动 */
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShakeBase> CameraShakeClass;
 	
 protected:
 	virtual void BeginPlay() override;

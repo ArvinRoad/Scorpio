@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FPSPlayerController.h"
 #include "WeaponBaseServer.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
@@ -30,6 +31,10 @@ private:
 	/* 动画蓝图 */
 	UAnimInstance* ClientArmsEnemyBP;
 
+	/* 屏幕抖动 */
+	UPROPERTY(BlueprintReadOnly,meta=(AllowPrivateAccess="true"))
+	AFPSPlayerController* FPSPlayerController;
+	
 #pragma endregion 
 
 protected:
