@@ -34,6 +34,9 @@ void AFPSBaseCharacter::BeginPlay()
 	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
 	ClientArmsEnemyBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画
 	FPSPlayerController = Cast<AFPSPlayerController>(GetController());	// 持有AFPSPlayerController类型指针 屏幕抖动
+	if(FPSPlayerController) {
+		FPSPlayerController->CreatePlayerUI();
+	}
 }
 
 void AFPSBaseCharacter::Tick(float DeltaTime)
