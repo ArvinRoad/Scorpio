@@ -19,4 +19,8 @@ public:
 	/* Game Player UI */
 	UFUNCTION(BlueprintImplementableEvent,Category="PlayerUI")
 	void CreatePlayerUI();
+
+	/* 十字线UI扩散动画 */
+	UFUNCTION(BlueprintImplementableEvent,Category="PlayerUI")
+	void DoCrosshairRecoil();
 };

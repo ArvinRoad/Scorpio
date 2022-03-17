@@ -94,6 +94,9 @@ void AFPSBaseCharacter::ClientFire_Implementation() {
 
 		/* 屏幕抖动 */
 		FPSPlayerController->PlayerCameraShake(CurrentClientWeapon->CameraShakeClass);
+
+		/* 十字线UI扩散动画 */
+		FPSPlayerController->DoCrosshairRecoil();
 	}
 }
 
