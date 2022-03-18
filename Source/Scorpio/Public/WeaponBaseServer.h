@@ -50,5 +50,14 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-
+	
+	/* 射击特效 */
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* MuzzleFlash;
+	
+	/* 多播 */
+	UFUNCTION(NetMulticast,Reliable,WithValidation)
+	void MultShootingEffect();
+	void MultShootingEffect_Implementation();
+	bool MultShootingEffect_Validate();
 };

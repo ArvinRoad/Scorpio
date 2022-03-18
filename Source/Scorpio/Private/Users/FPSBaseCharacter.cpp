@@ -79,8 +79,8 @@ bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
 void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocation, FRotator CameraRotation,bool IsMoving) {
-	/* 服务端逻辑对标：ClientFire_Implementation */
-	
+	/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
+	ServerPrimaryWeapon->MultShootingEffect();
 }
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
 	return true;
@@ -232,4 +232,4 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 void AFPSBaseCharacter::StopFirePrimary() {
 	// 析构FireWeaponPrimary 参数
 }
-#pragma endregion·
+#pragma endregion

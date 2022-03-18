@@ -1,5 +1,6 @@
 #include "WeaponBaseServer.h"
 
+#include "Kismet/GameplayStatics.h"
 #include "Users/FPSBaseCharacter.h"
 
 AWeaponBaseServer::AWeaponBaseServer()
@@ -57,5 +58,17 @@ void AWeaponBaseServer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+/* 多播 */
+void AWeaponBaseServer::MultShootingEffect_Implementation() {
+	/* 先屏蔽掉谁调用进来的 GetOwner() 获取枪的主人 不等于客户端的主人(当前客户端 0 默认的Pawn) */
+	if(GetOwner() != UGameplayStatics::GetPlayerPawn(GetWorld(),0)) {
+		UGameplayStatics::SpawnEmitterAttached(MuzzleFlash,WeaponMesh,TEXT("Fire_FX_Slot"),FVector::ZeroVector,FRotator::ZeroRotator,FVector::OneVector,EAttachLocation::KeepRelativeOffset,true,EPSCPoolMethod::None,true);	// 枪口特效 EPSCPoolMethod::AutoRelease 表示用完后对池的操作(当前是自动返还到对现池) None|不存储对象池子
+		
+	}
+}
+bool AWeaponBaseServer::MultShootingEffect_Validate() {
+	return true;
 }
 
