@@ -54,6 +54,10 @@ public:
 	/* 射击特效 */
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* MuzzleFlash;
+
+	/* 声效引用 */
+	UPROPERTY(EditAnywhere)
+	USoundBase* FireSound;
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
