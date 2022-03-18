@@ -1,6 +1,7 @@
 #include "WeaponBaseServer.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "Users/FPSBaseCharacter.h"
 
 AWeaponBaseServer::AWeaponBaseServer()
@@ -72,3 +73,7 @@ bool AWeaponBaseServer::MultShootingEffect_Validate() {
 	return true;
 }
 
+/* Replicated 宏实现方法，不需要声明父类是AActor 同步服务端和客户端子弹 */
+void AWeaponBaseServer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	DOREPLIFETIME_CONDITION(AWeaponBaseServer,ClipCurrentAmmo,COND_None);
+}

@@ -1,6 +1,7 @@
 #include "Scorpio/Public/Users/FPSBaseCharacter.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 AFPSBaseCharacter::AFPSBaseCharacter()
 {
@@ -42,7 +43,6 @@ void AFPSBaseCharacter::BeginPlay()
 void AFPSBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -81,11 +81,12 @@ bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocation, FRotator CameraRotation,bool IsMoving) {
 	/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
 	ServerPrimaryWeapon->MultShootingEffect();
+	ServerPrimaryWeapon->ClipCurrentAmmo -= 1;	// 开枪减少子弹
+	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
 }
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
 	return true;
 }
-
 void AFPSBaseCharacter::ClientFire_Implementation() {
 	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
 	if(CurrentClientWeapon) {
@@ -107,7 +108,6 @@ void AFPSBaseCharacter::ClientFire_Implementation() {
 		FPSPlayerController->DoCrosshairRecoil();
 	}
 }
-
 /* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 	if(ServerPrimaryWeapon) {
@@ -222,12 +222,17 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 /* 换弹与射击相关 */
 #pragma region Fire
 void AFPSBaseCharacter::FireWeaponPrimary() {
-	UE_LOG(LogTemp,Warning,TEXT("射击中:void AFPSBaseCharacter::FireWeaponPrimary()"));
-	// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成 枪口特效 射击声效
-	ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
-	// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
-	ClientFire();
-	// 射击模式：连发 | 单射 | 点发
+	// 判断弹匣子弹是否足够
+	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
+		// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成 枪口特效 射击声效
+		ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
+		ClientFire();
+		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo));  // DeBug输出子弹数
+		// 射击模式：连发 | 单射 | 点发	
+	}else {
+		// 子弹卡壳声效
+	}
 }
 void AFPSBaseCharacter::StopFirePrimary() {
 	// 析构FireWeaponPrimary 参数

@@ -59,6 +59,16 @@ public:
 	UPROPERTY(EditAnywhere)
 	USoundBase* FireSound;
 	
+	// 枪体目前剩余子弹数
+	UPROPERTY(EditAnywhere)
+	int32 GunCurrentAmmo;
+	// 弹匣目前剩余子弹数
+	UPROPERTY(EditAnywhere,Replicated)
+	int32 ClipCurrentAmmo;
+	// 弹匣最多可以存多少子弹
+	UPROPERTY(EditAnywhere)
+	int32 MaxClipAmmo;
+	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
 	void MultShootingEffect();
