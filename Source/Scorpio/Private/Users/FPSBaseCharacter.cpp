@@ -78,6 +78,14 @@ void AFPSBaseCharacter::ServerNormalSpeedWalkAction_Implementation() {
 bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
+void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocation, FRotator CameraRotation,bool IsMoving) {
+	/* 服务端逻辑对标：ClientFire_Implementation */
+	
+}
+bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
+	return true;
+}
+
 void AFPSBaseCharacter::ClientFire_Implementation() {
 	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
 	if(CurrentClientWeapon) {
@@ -215,8 +223,8 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 #pragma region Fire
 void AFPSBaseCharacter::FireWeaponPrimary() {
 	UE_LOG(LogTemp,Warning,TEXT("射击中:void AFPSBaseCharacter::FireWeaponPrimary()"));
-	// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成
-	
+	// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成 枪口特效 射击声效
+	ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
 	// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
 	ClientFire();
 	// 射击模式：连发 | 单射 | 点发
@@ -224,4 +232,4 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 void AFPSBaseCharacter::StopFirePrimary() {
 	// 析构FireWeaponPrimary 参数
 }
-#pragma endregion
+#pragma endregion·

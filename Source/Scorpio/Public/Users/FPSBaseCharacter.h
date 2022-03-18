@@ -105,6 +105,12 @@ public:
 	void ServerNormalSpeedWalkAction_Implementation();
 	bool ServerNormalSpeedWalkAction_Validate();
 
+	/* 射击方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerFireRifleWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	void ServerFireRifleWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	bool ServerFireRifleWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+
 	/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 	UFUNCTION(Client,Reliable)
 	void ClientEquipFPArmsPrimary();
