@@ -118,6 +118,10 @@ public:
 	/* 枪体动画 */
 	UFUNCTION(Client,Reliable)
 	void ClientFire();
+
+	/* 弹药更新 */
+	UFUNCTION(Client,Reliable)
+	void ClientUpdateAmmoUI(int32 ClipCurrentAmmo,int32 GunCurrentAmmo);
 	
 #pragma endregion 
 };

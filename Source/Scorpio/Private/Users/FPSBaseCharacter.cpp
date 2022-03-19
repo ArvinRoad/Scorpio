@@ -82,11 +82,18 @@ void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocat
 	/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
 	ServerPrimaryWeapon->MultShootingEffect();
 	ServerPrimaryWeapon->ClipCurrentAmmo -= 1;	// 开枪减少子弹
+	ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
 	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
 }
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
 	return true;
 }
+void AFPSBaseCharacter::ClientUpdateAmmoUI_Implementation(int32 ClipCurrentAmmo, int32 GunCurrentAmmo) {
+	if(FPSPlayerController) {
+		FPSPlayerController->UpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
+	}
+}
+
 void AFPSBaseCharacter::ClientFire_Implementation() {
 	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
 	if(CurrentClientWeapon) {
@@ -120,6 +127,7 @@ void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			ClientPrimaryWeapon = GetWorld()->SpawnActor<AWeaponBaseClien>(ServerPrimaryWeapon->ClientWeaponBaseBPClass,GetActorTransform(),SpawnInfo);
 			ClientPrimaryWeapon->K2_AttachToComponent(FPArmsMesh,TEXT("WeaponSocket"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);
+			ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
 		}
 	}
 }

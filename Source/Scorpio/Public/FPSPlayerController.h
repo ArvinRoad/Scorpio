@@ -23,4 +23,8 @@ public:
 	/* 十字线UI扩散动画 */
 	UFUNCTION(BlueprintImplementableEvent,Category="PlayerUI")
 	void DoCrosshairRecoil();
+
+	/* 弹药更新 */
+	UFUNCTION(BlueprintImplementableEvent,Category="PlayerUI")
+	void UpdateAmmoUI(int32 ClipCurrentAmmo,int32 GunCurrentAmmo);
 };
