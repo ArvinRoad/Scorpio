@@ -68,6 +68,9 @@ public:
 	// 弹匣最多可以存多少子弹
 	UPROPERTY(EditAnywhere)
 	int32 MaxClipAmmo;
+
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* ServerTPBodysShootAnimMontage;
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

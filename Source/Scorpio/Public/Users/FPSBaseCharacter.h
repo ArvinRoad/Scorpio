@@ -29,7 +29,10 @@ private:
 	USkeletalMeshComponent* FPArmsMesh;
 
 	/* 动画蓝图 */
-	UAnimInstance* ClientArmsEnemyBP;
+	UPROPERTY(Category=Character,BlueprintReadOnly,meta=(AllowPrivateAccess="true"));
+	UAnimInstance* ClientArmsAnimBP;
+	UPROPERTY(Category=Character,BlueprintReadOnly,meta=(AllowPrivateAccess="true"));
+	UAnimInstance* ServerBodysAnimBP;
 
 	/* 屏幕抖动 */
 	UPROPERTY(BlueprintReadOnly,meta=(AllowPrivateAccess="true"))
@@ -110,6 +113,12 @@ public:
 	void ServerFireRifleWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	void ServerFireRifleWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	bool ServerFireRifleWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+
+	/* 多播 身体射击蒙太奇动画 */
+	UFUNCTION(NetMulticast,Reliable,WithValidation)
+	void MultShooting();
+	void MultShooting_Implementation();
+	bool MultShooting_Validate();
 
 	/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 	UFUNCTION(Client,Reliable)

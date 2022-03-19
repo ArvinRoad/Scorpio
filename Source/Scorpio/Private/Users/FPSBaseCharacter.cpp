@@ -33,7 +33,8 @@ void AFPSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
-	ClientArmsEnemyBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画
+	ClientArmsAnimBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画初始化
+	ServerBodysAnimBP = Mesh->GetAnimInstance();	// 射击全身动画初始化
 	FPSPlayerController = Cast<AFPSPlayerController>(GetController());	// 持有AFPSPlayerController类型指针 屏幕抖动
 	if(FPSPlayerController) {
 		FPSPlayerController->CreatePlayerUI();
@@ -79,13 +80,26 @@ bool AFPSBaseCharacter::ServerNormalSpeedWalkAction_Validate() {
 	return true;
 }
 void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocation, FRotator CameraRotation,bool IsMoving) {
-	/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
-	ServerPrimaryWeapon->MultShootingEffect();
-	ServerPrimaryWeapon->ClipCurrentAmmo -= 1;	// 开枪减少子弹
-	ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
-	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
+	if(ServerPrimaryWeapon) {
+		/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
+		ServerPrimaryWeapon->MultShootingEffect();
+		ServerPrimaryWeapon->ClipCurrentAmmo -= 1;	// 开枪减少子弹
+		MultShooting(); // 多播 身体射击动画蒙太奇
+		ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
+		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
+	}
 }
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
+	return true;
+}
+void AFPSBaseCharacter::MultShooting_Implementation() {
+	if(ServerBodysAnimBP) {
+		if(ServerPrimaryWeapon) {
+			ServerBodysAnimBP->Montage_Play(ServerPrimaryWeapon->ServerTPBodysShootAnimMontage);
+		}
+	}
+}
+bool AFPSBaseCharacter::MultShooting_Validate() {
 	return true;
 }
 void AFPSBaseCharacter::ClientUpdateAmmoUI_Implementation(int32 ClipCurrentAmmo, int32 GunCurrentAmmo) {
@@ -93,7 +107,6 @@ void AFPSBaseCharacter::ClientUpdateAmmoUI_Implementation(int32 ClipCurrentAmmo,
 		FPSPlayerController->UpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
 	}
 }
-
 void AFPSBaseCharacter::ClientFire_Implementation() {
 	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
 	if(CurrentClientWeapon) {
@@ -102,8 +115,8 @@ void AFPSBaseCharacter::ClientFire_Implementation() {
 		
 		/* 手臂的播放动画 蒙太奇 */
 		UAnimMontage* ClientArmsFireMontage = CurrentClientWeapon->ClientArmsFireAnimMontage;
-		ClientArmsEnemyBP->Montage_SetPlayRate(ClientArmsFireMontage,1);	// 蒙太奇动画速率 1 倍速
-		ClientArmsEnemyBP->Montage_Play(ClientArmsFireMontage);
+		ClientArmsAnimBP->Montage_SetPlayRate(ClientArmsFireMontage,1);	// 蒙太奇动画速率 1 倍速
+		ClientArmsAnimBP->Montage_Play(ClientArmsFireMontage);
 
 		/* 射击声效 */
 		CurrentClientWeapon->DisplayWeaponEffect();
