@@ -91,6 +91,7 @@ private:
 public:
 	void FireWeaponPrimary();	// 步枪射击方法
 	void StopFirePrimary();	// 步枪停止射击回复事件
+	void RifleLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 步枪射线检测
 #pragma endregion
 
 	/* 服务器同步交互 */

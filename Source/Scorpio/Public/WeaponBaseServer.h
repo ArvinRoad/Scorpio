@@ -71,6 +71,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* ServerTPBodysShootAnimMontage;
+
+	UPROPERTY(EditAnywhere)
+	float BulletDistance;	// 子弹射击距离
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

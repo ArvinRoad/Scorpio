@@ -1,6 +1,7 @@
 #include "Scorpio/Public/Users/FPSBaseCharacter.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 AFPSBaseCharacter::AFPSBaseCharacter()
@@ -88,6 +89,7 @@ void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocat
 		ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
 		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
 	}
+	RifleLineTrace(CameraLocation,CameraRotation,IsMoving);	// 射线检测
 }
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
 	return true;
@@ -257,5 +259,35 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 }
 void AFPSBaseCharacter::StopFirePrimary() {
 	// 析构FireWeaponPrimary 参数
+}
+/* 步枪射击射线检测 */
+void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
+	FVector EndLocation;
+	FVector CameraForwardVector =  UKismetMathLibrary::GetForwardVector(CameraRotation);	// 前向向量
+	TArray<AActor*> IgnoreArray;	// 要被忽略的碰撞检测数组
+	IgnoreArray.Add(this);
+	FHitResult HitResult;	// 接收射线检测后结果
+
+	if(ServerPrimaryWeapon) {
+		/* EndLocation计算方法 IsMoving 是否移动会导致不同的EndLocation计算 */
+		if(IsMoving) {
+		
+		}else {
+			EndLocation = CameraLocation + CameraForwardVector * ServerPrimaryWeapon->BulletDistance;
+		}
+	}
+	/**
+	 *  第五个为 false 目前为简单的碰撞  true为复杂碰撞
+	 *  第七个为是否画出射击检测的DeBug线 Persistent 永久画出测试使用 改为 None则关闭
+	 *  第十个为DeBug 线颜色 FLinearColor::Red
+	 *  第十一个为击中后颜色 FLinearColor::Green
+	 *  最后一个是DeBug线存在时间，目前为永久
+	 */
+	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(GetWorld(),CameraLocation,EndLocation,ETraceTypeQuery::TraceTypeQuery1,false,IgnoreArray,EDrawDebugTrace::Persistent,HitResult,true,FLinearColor::Red,FLinearColor::Green,3.f);	
+
+	/* 如果射线检测成功了去实现方法：打到玩家应用伤害 打到墙生成弹孔 打到可破坏墙就破碎 */
+	if(HitSuccess) {
+		UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("Hit Actor Name : %s"),*HitResult.GetActor()->GetName()));	// 射线检测日志
+	}
 }
 #pragma endregion
