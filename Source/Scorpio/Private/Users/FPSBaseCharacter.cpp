@@ -120,6 +120,12 @@ void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FR
 bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation) {
 	return true;
 }
+void AFPSBaseCharacter::ClientUpdateHealthUI_Implementation(float NewHealth) {
+	if(FPSPlayerController) {
+		FPSPlayerController->UpdateHealthUI(NewHealth);
+	}
+}
+
 void AFPSBaseCharacter::ClientUpdateAmmoUI_Implementation(int32 ClipCurrentAmmo, int32 GunCurrentAmmo) {
 	if(FPSPlayerController) {
 		FPSPlayerController->UpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
@@ -344,6 +350,10 @@ void AFPSBaseCharacter::DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor*
 }
 void AFPSBaseCharacter::OnHit(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation,UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType,AActor* DamageCauser) {
 	Health -= Damage;
-	UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("PlayerName%s Health : %f"),*GetName(),Health));	// 伤害调试日志
+	ClientUpdateHealthUI(Health);
+	if(Health <= 0 ) {
+		// 死亡逻辑
+	}
+	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("PlayerName%s Health : %f"),*GetName(),Health));	// 伤害调试日志
 }
 #pragma endregion

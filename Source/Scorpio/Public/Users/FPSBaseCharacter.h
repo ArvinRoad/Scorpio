@@ -143,6 +143,10 @@ public:
 	/* 弹药更新 */
 	UFUNCTION(Client,Reliable)
 	void ClientUpdateAmmoUI(int32 ClipCurrentAmmo,int32 GunCurrentAmmo);
+
+	/* 玩家血量更新 */
+	UFUNCTION(Client,Reliable)
+	void ClientUpdateHealthUI(float NewHealth);
 	
 #pragma endregion 
 };
