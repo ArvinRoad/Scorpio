@@ -80,6 +80,12 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float BaseDamage;	//	武器基础伤害
+
+	UPROPERTY(EditAnywhere)
+	bool IsAutomatic;	// 是否支持自动射击
+
+	UPROPERTY(EditAnywhere)
+	float AutomaticFireRate;	// 自动射击的频率
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

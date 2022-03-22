@@ -89,9 +89,19 @@ private:
 /* 换弹与射击相关 */
 #pragma region Fire
 public:
+	/* 计时器 */
+	FTimerHandle AutomaticFireTimerHandle;	// 自动射击计时器(连射)
+	void AutomaticFire();	// 自动射击方法
+	
+	/* 步枪相关射击方法 */
 	void FireWeaponPrimary();	// 步枪射击方法
 	void StopFirePrimary();	// 步枪停止射击回复事件
 	void RifleLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 步枪射线检测
+
+	/* 狙击枪相关射击方法 */
+	
+	/* 手枪相关射击方法 */
+	
 	void DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo);	// 玩家伤害(五个部位)
 	UFUNCTION()
 	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser); // 伤害回调方法

@@ -266,6 +266,16 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 
 /* 换弹与射击相关 */
 #pragma region Fire
+void AFPSBaseCharacter::AutomaticFire() {
+	// 判断弹匣子弹是否足够
+	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
+		ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		ClientFire();
+	} else {
+		// 子弹卡壳声效
+		StopFirePrimary();
+	}
+}
 void AFPSBaseCharacter::FireWeaponPrimary() {
 	// 判断弹匣子弹是否足够
 	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
@@ -274,13 +284,18 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 		// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
 		ClientFire();
 		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo));  // DeBug输出子弹数
-		// 射击模式：连发 | 单射 | 点发	
-	}else {
+
+		// 射击模式：连发(开启计时器) | 单射 | 点发
+		if(ServerPrimaryWeapon->IsAutomatic) {
+			GetWorldTimerManager().SetTimer(AutomaticFireTimerHandle,this,&AFPSBaseCharacter::AutomaticFire,ServerPrimaryWeapon->AutomaticFireRate,true);
+		}
+	} else {
 		// 子弹卡壳声效
 	}
 }
 void AFPSBaseCharacter::StopFirePrimary() {
-	// 析构FireWeaponPrimary 参数
+	// 析构FireWeaponPrimary 参数 关闭计时器
+	GetWorldTimerManager().ClearTimer(AutomaticFireTimerHandle);
 }
 /* 步枪射击射线检测 */
 void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
