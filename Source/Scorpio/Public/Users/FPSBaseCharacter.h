@@ -92,6 +92,11 @@ public:
 	void FireWeaponPrimary();	// 步枪射击方法
 	void StopFirePrimary();	// 步枪停止射击回复事件
 	void RifleLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 步枪射线检测
+	void DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo);	// 玩家伤害(五个部位)
+	UFUNCTION()
+	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser); // 伤害回调方法
+
+	float Health;	// 角色生命变量
 #pragma endregion
 
 	/* 服务器同步交互 */

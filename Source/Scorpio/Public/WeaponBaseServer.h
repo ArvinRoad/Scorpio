@@ -77,6 +77,9 @@ public:
 	
 	UPROPERTY(EditAnywhere)
 	UMaterialInterface* BulletDecalMaterial;	// 弹孔贴图
+
+	UPROPERTY(EditAnywhere)
+	float BaseDamage;	//	武器基础伤害
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

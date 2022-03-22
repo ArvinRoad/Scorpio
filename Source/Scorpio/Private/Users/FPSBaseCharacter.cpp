@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 AFPSBaseCharacter::AFPSBaseCharacter()
 {
@@ -35,6 +36,8 @@ AFPSBaseCharacter::AFPSBaseCharacter()
 void AFPSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	Health = 100; // 初始生命100
+	OnTakePointDamage.AddDynamic(this,&AFPSBaseCharacter::OnHit);	// 伤害回调
 	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
 	ClientArmsAnimBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画初始化
 	ServerBodysAnimBP = Mesh->GetAnimInstance();	// 射击全身动画初始化
@@ -303,12 +306,44 @@ void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRo
 		//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("Hit Actor Name : %s"),*HitResult.GetActor()->GetName()));	// 射线检测日志
 		AFPSBaseCharacter* FPSCharacter = Cast<AFPSBaseCharacter>(HitResult.GetActor());		// 接收检测玩家
 		if(FPSCharacter) {
-			// 打到玩家
+			// 打到玩家应用伤害
+			DamagePlayer(HitResult.PhysMaterial.Get(),HitResult.GetActor(),CameraLocation,HitResult);
 		} else {
 			// 打到非玩家广播弹孔
 			FRotator XRotator = UKismetMathLibrary::MakeRotFromX(HitResult.Normal);	// 让弹孔Rotation与模型法线方向一致
 			MultiSpawnBulletDecal(HitResult.Location,XRotator);
 		}
 	}
+}
+void AFPSBaseCharacter::DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo) {
+	/* 玩家伤害不同部位 */
+	if(ServerPrimaryWeapon) {
+		switch (PhysicalMaterial->SurfaceType) {
+			case EPhysicalSurface::SurfaceType1: {
+					// Head
+					UGameplayStatics::ApplyPointDamage(DamagedActor,ServerPrimaryWeapon->BaseDamage * 4,HitFromDirection,HitInfo,GetController(),this,UDamageType::StaticClass());
+			}
+				break;
+			case EPhysicalSurface::SurfaceType2: {
+					// Body
+					UGameplayStatics::ApplyPointDamage(DamagedActor,ServerPrimaryWeapon->BaseDamage * 1,HitFromDirection,HitInfo,GetController(),this,UDamageType::StaticClass());
+			}
+				break;
+			case EPhysicalSurface::SurfaceType3: {
+					// Arm
+					UGameplayStatics::ApplyPointDamage(DamagedActor,ServerPrimaryWeapon->BaseDamage * 0.8,HitFromDirection,HitInfo,GetController(),this,UDamageType::StaticClass());
+			}
+				break;
+			case EPhysicalSurface::SurfaceType4: {
+					// Leg
+					UGameplayStatics::ApplyPointDamage(DamagedActor,ServerPrimaryWeapon->BaseDamage * 0.7,HitFromDirection,HitInfo,GetController(),this,UDamageType::StaticClass());
+			}
+				break;
+		}
+	}
+}
+void AFPSBaseCharacter::OnHit(AActor* DamagedActor, float Damage, AController* InstigatedBy, FVector HitLocation,UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const UDamageType* DamageType,AActor* DamageCauser) {
+	Health -= Damage;
+	UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("PlayerName%s Health : %f"),*GetName(),Health));	// 伤害调试日志
 }
 #pragma endregion
