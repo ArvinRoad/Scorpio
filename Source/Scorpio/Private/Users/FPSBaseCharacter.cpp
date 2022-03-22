@@ -1,6 +1,8 @@
 #include "Scorpio/Public/Users/FPSBaseCharacter.h"
 
+#include "Components/DecalComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -102,6 +104,17 @@ void AFPSBaseCharacter::MultShooting_Implementation() {
 	}
 }
 bool AFPSBaseCharacter::MultShooting_Validate() {
+	return true;
+}
+void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FRotator Rotation) {
+	if(ServerPrimaryWeapon) {
+		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(),ServerPrimaryWeapon->BulletDecalMaterial,FVector(8,8,8),Location,Rotation,10);	// 生成弹孔
+		if(Decal) {
+			Decal->SetFadeScreenSize(0.001);	// 修改弹孔可见距离
+		}
+	}
+}
+bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation) {
 	return true;
 }
 void AFPSBaseCharacter::ClientUpdateAmmoUI_Implementation(int32 ClipCurrentAmmo, int32 GunCurrentAmmo) {
@@ -283,11 +296,19 @@ void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRo
 	 *  第十一个为击中后颜色 FLinearColor::Green
 	 *  最后一个是DeBug线存在时间，目前为永久
 	 */
-	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(GetWorld(),CameraLocation,EndLocation,ETraceTypeQuery::TraceTypeQuery1,false,IgnoreArray,EDrawDebugTrace::Persistent,HitResult,true,FLinearColor::Red,FLinearColor::Green,3.f);	
+	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(GetWorld(),CameraLocation,EndLocation,ETraceTypeQuery::TraceTypeQuery1,false,IgnoreArray,EDrawDebugTrace::None,HitResult,true,FLinearColor::Red,FLinearColor::Green,3.f);	
 
 	/* 如果射线检测成功了去实现方法：打到玩家应用伤害 打到墙生成弹孔 打到可破坏墙就破碎 */
 	if(HitSuccess) {
-		UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("Hit Actor Name : %s"),*HitResult.GetActor()->GetName()));	// 射线检测日志
+		//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("Hit Actor Name : %s"),*HitResult.GetActor()->GetName()));	// 射线检测日志
+		AFPSBaseCharacter* FPSCharacter = Cast<AFPSBaseCharacter>(HitResult.GetActor());		// 接收检测玩家
+		if(FPSCharacter) {
+			// 打到玩家
+		} else {
+			// 打到非玩家广播弹孔
+			FRotator XRotator = UKismetMathLibrary::MakeRotFromX(HitResult.Normal);	// 让弹孔Rotation与模型法线方向一致
+			MultiSpawnBulletDecal(HitResult.Location,XRotator);
+		}
 	}
 }
 #pragma endregion

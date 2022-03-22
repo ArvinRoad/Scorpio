@@ -75,6 +75,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float BulletDistance;	// 子弹射击距离
 	
+	UPROPERTY(EditAnywhere)
+	UMaterialInterface* BulletDecalMaterial;	// 弹孔贴图
+	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
 	void MultShootingEffect();

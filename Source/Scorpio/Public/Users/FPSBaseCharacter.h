@@ -121,6 +121,12 @@ public:
 	void MultShooting_Implementation();
 	bool MultShooting_Validate();
 
+	/* 多播 生成弹孔 */
+	UFUNCTION(NetMulticast,Reliable,WithValidation)
+	void MultiSpawnBulletDecal(FVector Location,FRotator Rotation);
+	void MultiSpawnBulletDecal_Implementation(FVector Location,FRotator Rotation);
+	bool MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation);
+
 	/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
 	UFUNCTION(Client,Reliable)
 	void ClientEquipFPArmsPrimary();
