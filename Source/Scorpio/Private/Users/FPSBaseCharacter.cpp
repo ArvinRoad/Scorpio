@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Net/UnrealNetwork.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 
 AFPSBaseCharacter::AFPSBaseCharacter()
@@ -37,6 +38,8 @@ void AFPSBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	Health = 100; // 初始生命100
+	IsFiring = false;	// 是否在射击
+	IsReloading = false;	// 是否在换弹
 	OnTakePointDamage.AddDynamic(this,&AFPSBaseCharacter::OnHit);	// 伤害回调
 	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
 	ClientArmsAnimBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画初始化
@@ -45,6 +48,13 @@ void AFPSBaseCharacter::BeginPlay()
 	if(FPSPlayerController) {
 		FPSPlayerController->CreatePlayerUI();
 	}
+}
+
+/* Replicated 宏实现方法，不需要声明父类是AActor 同步服务端和客户端射击状态 */
+void AFPSBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(AFPSBaseCharacter,IsFiring,COND_None);
+	DOREPLIFETIME_CONDITION(AFPSBaseCharacter,IsReloading,COND_None);
 }
 
 void AFPSBaseCharacter::Tick(float DeltaTime)
@@ -62,12 +72,12 @@ void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	InputComponent->BindAction(TEXT("Jump"),IE_Released,this,&AFPSBaseCharacter::StopJumpAction);
 	InputComponent->BindAction(TEXT("Fire"),IE_Pressed,this,&AFPSBaseCharacter::InputFirePressed);
 	InputComponent->BindAction(TEXT("Fire"),IE_Released,this,&AFPSBaseCharacter::InputFireReleased);
+	InputComponent->BindAction(TEXT("Reload"),IE_Pressed,this,&AFPSBaseCharacter::InputReload);
 	
 	InputComponent->BindAxis(TEXT("MoveForward"),this,&AFPSBaseCharacter::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"),this,&AFPSBaseCharacter::MoveRight);
 	InputComponent->BindAxis(TEXT("Turn"),this,&AFPSBaseCharacter::AddControllerYawInput);
 	InputComponent->BindAxis(TEXT("LookUp"),this,&AFPSBaseCharacter::AddControllerPitchInput);
-	
 }
 #pragma endregion 
 
@@ -94,11 +104,27 @@ void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocat
 		ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
 		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
 	}
+	IsFiring = true;	// 正在射击
 	RifleLineTrace(CameraLocation,CameraRotation,IsMoving);	// 射线检测
 }
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
 	return true;
 }
+void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
+	/* 客户端: 手臂动画 | 数据更新 | UI更新 */
+	/* 服务器：多播身体动画 | 数据更新 | UI更新 */
+	UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
+}
+bool AFPSBaseCharacter::ServerReloadPrimary_Validate() {
+	return true;
+}
+void AFPSBaseCharacter::ServerStopFiring_Implementation() {
+	IsFiring = false;	// 非射击状态
+}
+bool AFPSBaseCharacter::ServerStopFiring_Validate() {
+	return true;
+}
+
 void AFPSBaseCharacter::MultShooting_Implementation() {
 	if(ServerBodysAnimBP) {
 		if(ServerPrimaryWeapon) {
@@ -232,6 +258,17 @@ void AFPSBaseCharacter::NormalSpeedWalkAction() {
 	CharacterMovement->MaxWalkSpeed = 600;
 	ServerNormalSpeedWalkAction();
 }
+void AFPSBaseCharacter::InputReload() {
+	if(!IsReloading) {
+		if(!IsFiring) {
+			switch (ActiveWeapon) {
+				case EWeaponType::AK47: {
+						ServerReloadPrimary();
+					}
+			}
+		}
+	}
+}
 
 #pragma endregion
 
@@ -335,6 +372,7 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 }
 void AFPSBaseCharacter::StopFirePrimary() {
 	// 析构FireWeaponPrimary 参数 关闭计时器
+	ServerStopFiring();
 	GetWorldTimerManager().ClearTimer(AutomaticFireTimerHandle);
 	ResetRecoil();
 }

@@ -54,6 +54,7 @@ protected:
 	void InputFireReleased();	// 鼠标左键松手松手
 	void LowSpeedWalkAction();		// 低速
 	void NormalSpeedWalkAction();	// 正常速度
+	void InputReload();	// 换弹方法
 #pragma endregion
 	
 /* 武器相关 */
@@ -111,6 +112,12 @@ public:
 	/* 狙击枪相关射击方法 */
 	
 	/* 手枪相关射击方法 */
+
+	/* Reload */
+	UPROPERTY(Replicated)
+	bool IsFiring;
+	UPROPERTY(Replicated)
+	bool IsReloading;
 	
 	void DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo);	// 玩家伤害(五个部位)
 	UFUNCTION()
@@ -139,6 +146,18 @@ public:
 	void ServerFireRifleWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	void ServerFireRifleWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	bool ServerFireRifleWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+
+	/* 换弹方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerReloadPrimary();
+	void ServerReloadPrimary_Implementation();
+	bool ServerReloadPrimary_Validate();
+	
+	/* 射击停止状态方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerStopFiring();
+	void ServerStopFiring_Implementation();
+	bool ServerStopFiring_Validate();
 
 	/* 多播 身体射击蒙太奇动画 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

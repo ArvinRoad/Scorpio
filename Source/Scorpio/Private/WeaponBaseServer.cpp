@@ -75,5 +75,6 @@ bool AWeaponBaseServer::MultShootingEffect_Validate() {
 
 /* Replicated 宏实现方法，不需要声明父类是AActor 同步服务端和客户端子弹 */
 void AWeaponBaseServer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(AWeaponBaseServer,ClipCurrentAmmo,COND_None);
 }
