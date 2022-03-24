@@ -92,6 +92,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UCurveFloat* HorizontalRecoilCurve;	// 水平后坐力曲线
+
+	UPROPERTY(EditAnywhere)
+	float MovingFireRandomRange;	//	跑打的随机范围(偏移值)
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

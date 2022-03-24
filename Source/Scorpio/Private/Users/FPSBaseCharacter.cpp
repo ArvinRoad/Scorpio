@@ -291,7 +291,11 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 void AFPSBaseCharacter::AutomaticFire() {
 	// 判断弹匣子弹是否足够
 	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
-		ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		if(UKismetMathLibrary::VSize(GetVelocity()) > 0.1f) {
+			ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),true);
+		} else {
+			ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		}
 		ClientFire();
 		ClientRecoil();
 	} else {
@@ -311,7 +315,11 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 	// 判断弹匣子弹是否足够
 	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
 		// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成 枪口特效 射击声效
-		ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		if(UKismetMathLibrary::VSize(GetVelocity()) > 0.1f) {
+			ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),true);
+		} else {
+			ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		}
 		// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
 		ClientFire();
 		ClientRecoil();
@@ -341,7 +349,11 @@ void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRo
 	if(ServerPrimaryWeapon) {
 		/* EndLocation计算方法 IsMoving 是否移动会导致不同的EndLocation计算 */
 		if(IsMoving) {
-		
+			FVector Vector = CameraLocation + CameraForwardVector * ServerPrimaryWeapon->BulletDistance;
+			float RandomX = UKismetMathLibrary::RandomFloatInRange(-ServerPrimaryWeapon->MovingFireRandomRange,ServerPrimaryWeapon->MovingFireRandomRange);
+			float RandomY = UKismetMathLibrary::RandomFloatInRange(-ServerPrimaryWeapon->MovingFireRandomRange,ServerPrimaryWeapon->MovingFireRandomRange);
+			float RandomZ = UKismetMathLibrary::RandomFloatInRange(-ServerPrimaryWeapon->MovingFireRandomRange,ServerPrimaryWeapon->MovingFireRandomRange);
+			EndLocation = FVector(Vector.X + RandomX,Vector.Y + RandomY,Vector.Z + RandomZ);
 		}else {
 			EndLocation = CameraLocation + CameraForwardVector * ServerPrimaryWeapon->BulletDistance;
 		}
