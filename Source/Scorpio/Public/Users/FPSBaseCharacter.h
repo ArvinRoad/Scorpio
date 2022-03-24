@@ -190,6 +190,10 @@ public:
 	/* 客户端后坐力方法 */
 	UFUNCTION(Client,Reliable)
 	void ClientRecoil();
+
+	/* 客户端换弹动画方法 */
+	UFUNCTION(Client,Reliable)
+	void ClientReload();
 	
 #pragma endregion 
 };

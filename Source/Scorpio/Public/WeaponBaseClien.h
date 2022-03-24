@@ -19,6 +19,10 @@ public:
 	UPROPERTY(EditAnywhere)
 	UAnimMontage* ClientArmsFireAnimMontage;
 
+	/* 持有动画蒙太奇(换弹) */
+	UPROPERTY(EditAnywhere)
+	UAnimMontage* ClientArmsReloadAnimMontage;
+
 	/* 声效引用 */
 	UPROPERTY(EditAnywhere)
 	USoundBase* FireSound;
@@ -40,6 +44,10 @@ public:
 	/* 枪体动画 这个方法在Cpp声明在蓝图实现 */
 	UFUNCTION(BlueprintImplementableEvent,Category = "FPGunAnimation")
 	void PlayShootAnimation();
+
+	/* 枪体换弹动画 这个方法在Cpp声明在蓝图实现 */
+	UFUNCTION(BlueprintImplementableEvent,Category = "FPGunAnimation")
+	void PlayReloadAnimation();
 
 	/* 枪体效果(粒子效果 音频声效) */
 	void DisplayWeaponEffect();

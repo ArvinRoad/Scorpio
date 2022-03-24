@@ -112,6 +112,7 @@ bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, F
 }
 void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
 	/* 客户端: 手臂动画 | 数据更新 | UI更新 */
+	ClientReload();
 	/* 服务器：多播身体动画 | 数据更新 | UI更新 */
 	UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
 }
@@ -146,6 +147,17 @@ void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FR
 bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation) {
 	return true;
 }
+
+void AFPSBaseCharacter::ClientReload_Implementation() {
+	/* 手臂换弹蒙太奇动画 */
+	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
+	if(CurrentClientWeapon) {
+		UAnimMontage* ClientArmsReloadMontage = CurrentClientWeapon->ClientArmsReloadAnimMontage;
+		ClientArmsAnimBP->Montage_Play(ClientArmsReloadMontage);
+		CurrentClientWeapon->PlayReloadAnimation();
+	}
+}
+
 void AFPSBaseCharacter::ClientRecoil_Implementation() {
 	UCurveFloat* VerticalRecoilCurve = nullptr;
 	UCurveFloat* HorizontalRecoilCurve = nullptr;
