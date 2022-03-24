@@ -89,6 +89,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UCurveFloat* VerticalRecoilCurve;	// 垂直后坐力曲线
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* HorizontalRecoilCurve;	// 水平后坐力曲线
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

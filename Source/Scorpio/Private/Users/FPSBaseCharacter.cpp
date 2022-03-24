@@ -122,20 +122,26 @@ bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator
 }
 void AFPSBaseCharacter::ClientRecoil_Implementation() {
 	UCurveFloat* VerticalRecoilCurve = nullptr;
+	UCurveFloat* HorizontalRecoilCurve = nullptr;
 	if(ServerPrimaryWeapon) {
 		VerticalRecoilCurve = ServerPrimaryWeapon->VerticalRecoilCurve;
+		HorizontalRecoilCurve = ServerPrimaryWeapon->HorizontalRecoilCurve;
 	}
 	RecoilXCoordPerShoot += 0.1;
 	if(VerticalRecoilCurve) {
 		NewVerticalRecoilAmount = VerticalRecoilCurve->GetFloatValue(RecoilXCoordPerShoot);
 	}
+	if(HorizontalRecoilCurve) {
+		NewHorizontalRecoilAmount = HorizontalRecoilCurve->GetFloatValue(RecoilXCoordPerShoot);
+	}
 	VerticalRecoilAmount = NewVerticalRecoilAmount - OldVerticalRecoilAmount;
+	HorizontalRecoilAmount = NewHorizontalRecoilAmount - OldHorizontalRecoilAmount;
 	if(FPSPlayerController) {
 		FRotator ControllerRotator = FPSPlayerController->GetControlRotation();
-		FPSPlayerController->SetControlRotation(FRotator(ControllerRotator.Pitch + VerticalRecoilAmount,
-			ControllerRotator.Yaw,ControllerRotator.Roll));
+		FPSPlayerController->SetControlRotation(FRotator(ControllerRotator.Pitch + VerticalRecoilAmount,ControllerRotator.Yaw + HorizontalRecoilAmount,ControllerRotator.Roll));
 	}
 	OldVerticalRecoilAmount = NewVerticalRecoilAmount;
+	OldHorizontalRecoilAmount = NewHorizontalRecoilAmount;
 }
 void AFPSBaseCharacter::ClientUpdateHealthUI_Implementation(float NewHealth) {
 	if(FPSPlayerController) {

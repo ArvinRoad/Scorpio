@@ -99,6 +99,9 @@ public:
 	float VerticalRecoilAmount;
 	float RecoilXCoordPerShoot;
 	void ResetRecoil();	// 重置后坐力相关变量
+	float NewHorizontalRecoilAmount;
+	float OldHorizontalRecoilAmount;
+	float HorizontalRecoilAmount;
 	
 	/* 步枪相关射击方法 */
 	void FireWeaponPrimary();	// 步枪射击方法
