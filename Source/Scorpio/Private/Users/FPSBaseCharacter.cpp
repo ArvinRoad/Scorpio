@@ -120,12 +120,28 @@ void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FR
 bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation) {
 	return true;
 }
+void AFPSBaseCharacter::ClientRecoil_Implementation() {
+	UCurveFloat* VerticalRecoilCurve = nullptr;
+	if(ServerPrimaryWeapon) {
+		VerticalRecoilCurve = ServerPrimaryWeapon->VerticalRecoilCurve;
+	}
+	RecoilXCoordPerShoot += 0.1;
+	if(VerticalRecoilCurve) {
+		NewVerticalRecoilAmount = VerticalRecoilCurve->GetFloatValue(RecoilXCoordPerShoot);
+	}
+	VerticalRecoilAmount = NewVerticalRecoilAmount - OldVerticalRecoilAmount;
+	if(FPSPlayerController) {
+		FRotator ControllerRotator = FPSPlayerController->GetControlRotation();
+		FPSPlayerController->SetControlRotation(FRotator(ControllerRotator.Pitch + VerticalRecoilAmount,
+			ControllerRotator.Yaw,ControllerRotator.Roll));
+	}
+	OldVerticalRecoilAmount = NewVerticalRecoilAmount;
+}
 void AFPSBaseCharacter::ClientUpdateHealthUI_Implementation(float NewHealth) {
 	if(FPSPlayerController) {
 		FPSPlayerController->UpdateHealthUI(NewHealth);
 	}
 }
-
 void AFPSBaseCharacter::ClientUpdateAmmoUI_Implementation(int32 ClipCurrentAmmo, int32 GunCurrentAmmo) {
 	if(FPSPlayerController) {
 		FPSPlayerController->UpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
@@ -271,11 +287,20 @@ void AFPSBaseCharacter::AutomaticFire() {
 	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
 		ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
 		ClientFire();
+		ClientRecoil();
 	} else {
 		// 子弹卡壳声效
 		StopFirePrimary();
 	}
 }
+
+void AFPSBaseCharacter::ResetRecoil() {
+	NewVerticalRecoilAmount = 0;
+	OldVerticalRecoilAmount = 0;
+	VerticalRecoilAmount = 0;
+	RecoilXCoordPerShoot = 0;
+}
+
 void AFPSBaseCharacter::FireWeaponPrimary() {
 	// 判断弹匣子弹是否足够
 	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
@@ -283,6 +308,7 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 		ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
 		// 客户端：枪体动画 | 手臂动画 | 射击声效 | 屏幕抖动 | 后作力 | 枪口特效
 		ClientFire();
+		ClientRecoil();
 		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo));  // DeBug输出子弹数
 
 		// 射击模式：连发(开启计时器) | 单射 | 点发
@@ -296,6 +322,7 @@ void AFPSBaseCharacter::FireWeaponPrimary() {
 void AFPSBaseCharacter::StopFirePrimary() {
 	// 析构FireWeaponPrimary 参数 关闭计时器
 	GetWorldTimerManager().ClearTimer(AutomaticFireTimerHandle);
+	ResetRecoil();
 }
 /* 步枪射击射线检测 */
 void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {

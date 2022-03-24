@@ -92,6 +92,13 @@ public:
 	/* 计时器 */
 	FTimerHandle AutomaticFireTimerHandle;	// 自动射击计时器(连射)
 	void AutomaticFire();	// 自动射击方法
+
+	/* 后坐力参数 */
+	float NewVerticalRecoilAmount;
+	float OldVerticalRecoilAmount;
+	float VerticalRecoilAmount;
+	float RecoilXCoordPerShoot;
+	void ResetRecoil();	// 重置后坐力相关变量
 	
 	/* 步枪相关射击方法 */
 	void FireWeaponPrimary();	// 步枪射击方法
@@ -157,6 +164,10 @@ public:
 	/* 玩家血量更新 */
 	UFUNCTION(Client,Reliable)
 	void ClientUpdateHealthUI(float NewHealth);
+
+	/* 客户端后坐力方法 */
+	UFUNCTION(Client,Reliable)
+	void ClientRecoil();
 	
 #pragma endregion 
 };

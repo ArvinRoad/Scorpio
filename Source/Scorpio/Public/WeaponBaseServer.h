@@ -86,6 +86,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float AutomaticFireRate;	// 自动射击的频率
+
+	UPROPERTY(EditAnywhere)
+	UCurveFloat* VerticalRecoilCurve;	// 垂直后坐力曲线
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
