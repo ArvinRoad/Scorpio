@@ -470,8 +470,23 @@ void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRo
 
 /* 换弹动画后的回调 */
 void AFPSBaseCharacter::DelayPlayArmReloadCallBack() {
-	UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("DelayPlayArmReloadCallBack()")));
+	int32 GunCurrentAmmo = ServerPrimaryWeapon->GunCurrentAmmo;
+	int32 ClipCurrentAmmo = ServerPrimaryWeapon->ClipCurrentAmmo;
+	int32 const MaxClipAmmo = ServerPrimaryWeapon->MaxClipAmmo;
+	// 是否装填全部枪体子弹
+	if(MaxClipAmmo - ClipCurrentAmmo >= GunCurrentAmmo) {
+		ClipCurrentAmmo += GunCurrentAmmo;
+		GunCurrentAmmo = 0;
+	} else {
+		GunCurrentAmmo -= MaxClipAmmo - ClipCurrentAmmo;
+		ClipCurrentAmmo = MaxClipAmmo;
+	}
+	ServerPrimaryWeapon->GunCurrentAmmo = GunCurrentAmmo;
+	ServerPrimaryWeapon->ClipCurrentAmmo = ClipCurrentAmmo;
+	ClientUpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
+	//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("DelayPlayArmReloadCallBack()")));
 }
+
 void AFPSBaseCharacter::DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo) {
 	/* 玩家伤害不同部位 */
 	if(ServerPrimaryWeapon) {
