@@ -111,11 +111,24 @@ bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, F
 	return true;
 }
 void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
-	/* 客户端: 手臂动画 | 数据更新 | UI更新 */
-	ClientReload();
-	/* 服务器：多播身体动画 | 数据更新 | UI更新 */
-	MultiReloadAnimation();
-	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
+	if(ServerPrimaryWeapon) {
+		if(ServerPrimaryWeapon->GunCurrentAmmo > 0 && ServerPrimaryWeapon->ClipCurrentAmmo < ServerPrimaryWeapon->MaxClipAmmo) {
+			/* 客户端: 手臂动画 | 数据更新 | UI更新 */
+			ClientReload();
+			/* 服务器：多播身体动画 | 数据更新 | UI更新 */
+			MultiReloadAnimation();
+			// 延迟
+			if(ClientPrimaryWeapon) {
+				FLatentActionInfo ActionInfo;
+				ActionInfo.CallbackTarget =	this;	// 执行者
+				ActionInfo.ExecutionFunction = TEXT("DelayPlayArmReloadCallBack");	// 执行的方法
+				ActionInfo.UUID = FMath::Rand();	// Action 的ID
+				ActionInfo.Linkage = 0;	// 不能为-1,否则无法执行
+				UKismetSystemLibrary::Delay(this,ClientPrimaryWeapon->ClientArmsReloadAnimMontage->GetPlayLength(),ActionInfo);
+				//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
+			}
+		}
+	}
 }
 bool AFPSBaseCharacter::ServerReloadPrimary_Validate() {
 	return true;
@@ -453,6 +466,11 @@ void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRo
 			MultiSpawnBulletDecal(HitResult.Location,XRotator);
 		}
 	}
+}
+
+/* 换弹动画后的回调 */
+void AFPSBaseCharacter::DelayPlayArmReloadCallBack() {
+	UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("DelayPlayArmReloadCallBack()")));
 }
 void AFPSBaseCharacter::DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo) {
 	/* 玩家伤害不同部位 */

@@ -122,6 +122,9 @@ public:
 	UPROPERTY(Replicated)
 	bool IsReloading;
 	
+	UFUNCTION()
+	void DelayPlayArmReloadCallBack();	// 换弹动画后的回调
+	
 	void DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo);	// 玩家伤害(五个部位)
 	UFUNCTION()
 	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser); // 伤害回调方法
