@@ -117,6 +117,7 @@ void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
 			ClientReload();
 			/* 服务器：多播身体动画 | 数据更新 | UI更新 */
 			MultiReloadAnimation();
+			IsReloading = true;
 			// 延迟
 			if(ClientPrimaryWeapon) {
 				FLatentActionInfo ActionInfo;
@@ -397,8 +398,8 @@ void AFPSBaseCharacter::ResetRecoil() {
 }
 
 void AFPSBaseCharacter::FireWeaponPrimary() {
-	// 判断弹匣子弹是否足够
-	if(ServerPrimaryWeapon->ClipCurrentAmmo>0) {
+	// 判断弹匣子弹是否足够 | 换弹前强制射击去掉 !IsReloading
+	if(ServerPrimaryWeapon->ClipCurrentAmmo>0 && !IsReloading) {
 		// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成 枪口特效 射击声效
 		if(UKismetMathLibrary::VSize(GetVelocity()) > 0.1f) {
 			ServerFireRifleWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),true);
@@ -473,6 +474,7 @@ void AFPSBaseCharacter::DelayPlayArmReloadCallBack() {
 	int32 GunCurrentAmmo = ServerPrimaryWeapon->GunCurrentAmmo;
 	int32 ClipCurrentAmmo = ServerPrimaryWeapon->ClipCurrentAmmo;
 	int32 const MaxClipAmmo = ServerPrimaryWeapon->MaxClipAmmo;
+	IsReloading = false;
 	// 是否装填全部枪体子弹
 	if(MaxClipAmmo - ClipCurrentAmmo >= GunCurrentAmmo) {
 		ClipCurrentAmmo += GunCurrentAmmo;
