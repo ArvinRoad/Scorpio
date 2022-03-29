@@ -78,6 +78,9 @@ private:
 
 	/* 现在使用客户端武器的指针 */
 	AWeaponBaseClien* GetCurrentClientFPArmsWeaponAction();
+
+	/* 现在使用服务端武器指针 */
+	AWeaponBaseServer* GetCurrentServerTPBodysWeaponAtcor();
 	
 #pragma endregion
 	
@@ -164,6 +167,12 @@ public:
 	void MultShooting();
 	void MultShooting_Implementation();
 	bool MultShooting_Validate();
+
+	/* 多播 身体换弹蒙太奇动画 */
+	UFUNCTION(NetMulticast,Reliable,WithValidation)
+	void MultiReloadAnimation();
+	void MultiReloadAnimation_Implementation();
+	bool MultiReloadAnimation_Validate();
 
 	/* 多播 生成弹孔 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)

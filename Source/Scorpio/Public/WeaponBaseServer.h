@@ -27,7 +27,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	EWeaponType KindOfWeapon;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	USkeletalMeshComponent* WeaponMesh;
 
 	/* 碰撞体 */
@@ -73,6 +73,9 @@ public:
 	UAnimMontage* ServerTPBodysShootAnimMontage;
 
 	UPROPERTY(EditAnywhere)
+	UAnimMontage* ServerTpBodysReloadAnimMontage;
+
+	UPROPERTY(EditAnywhere)
 	float BulletDistance;	// 子弹射击距离
 	
 	UPROPERTY(EditAnywhere)
@@ -101,4 +104,8 @@ public:
 	void MultShootingEffect();
 	void MultShootingEffect_Implementation();
 	bool MultShootingEffect_Validate();
+
+	/* 多播枪体换弹动画 这个方法在Cpp声明在蓝图实现 */
+	UFUNCTION(BlueprintImplementableEvent,Category = "FPGunAnimation")
+	void ServerPlayReloadAnimation();
 };

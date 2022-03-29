@@ -114,7 +114,8 @@ void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
 	/* 客户端: 手臂动画 | 数据更新 | UI更新 */
 	ClientReload();
 	/* 服务器：多播身体动画 | 数据更新 | UI更新 */
-	UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
+	MultiReloadAnimation();
+	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
 }
 bool AFPSBaseCharacter::ServerReloadPrimary_Validate() {
 	return true;
@@ -136,6 +137,19 @@ void AFPSBaseCharacter::MultShooting_Implementation() {
 bool AFPSBaseCharacter::MultShooting_Validate() {
 	return true;
 }
+void AFPSBaseCharacter::MultiReloadAnimation_Implementation() {
+	AWeaponBaseServer* CurrentServerWeapon = GetCurrentServerTPBodysWeaponAtcor();
+	if(ServerBodysAnimBP) {
+		if(CurrentServerWeapon) {
+			ServerBodysAnimBP->Montage_Play(CurrentServerWeapon->ServerTpBodysReloadAnimMontage);
+			CurrentServerWeapon->ServerPlayReloadAnimation();
+		}
+	}
+}
+bool AFPSBaseCharacter::MultiReloadAnimation_Validate() {
+	return true;
+}
+
 void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FRotator Rotation) {
 	if(ServerPrimaryWeapon) {
 		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(),ServerPrimaryWeapon->BulletDecalMaterial,FVector(8,8,8),Location,Rotation,10);	// 生成弹孔
@@ -329,6 +343,15 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 	switch(ActiveWeapon) {
 		case EWeaponType::AK47: {
 				return ClientPrimaryWeapon;
+			}
+	}
+	return nullptr;
+}
+
+AWeaponBaseServer* AFPSBaseCharacter::GetCurrentServerTPBodysWeaponAtcor() {
+	switch(ActiveWeapon) {
+		case EWeaponType::AK47: {
+				return ServerPrimaryWeapon;
 			}
 	}
 	return nullptr;
