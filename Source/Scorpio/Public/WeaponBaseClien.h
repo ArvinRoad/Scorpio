@@ -34,6 +34,10 @@ public:
 	/* 枪类型射击屏幕抖动 */
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UCameraShakeBase> CameraShakeClass;
+
+	/* 手臂混合动画 */
+	UPROPERTY(EditAnywhere)
+	int FPArmsBlendPose;
 	
 protected:
 	virtual void BeginPlay() override;

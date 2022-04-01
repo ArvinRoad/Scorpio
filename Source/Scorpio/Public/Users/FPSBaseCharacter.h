@@ -37,7 +37,11 @@ private:
 	/* 屏幕抖动 */
 	UPROPERTY(BlueprintReadOnly,meta=(AllowPrivateAccess="true"))
 	AFPSPlayerController* FPSPlayerController;
-	
+
+	/* 测试代码：更替开局初始武器 */
+	UPROPERTY(EditAnywhere)
+	EWeaponType TestStartWeapon;
+
 #pragma endregion 
 
 protected:
@@ -61,8 +65,13 @@ protected:
 #pragma region Weapon
 public:
 	void EquipPrimary(AWeaponBaseServer* WeaponBaseServer);	// 主武器
+
+	/* 手臂混合动画方法 */
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateFPArmsBlendPose(int NewIndex);
+	
 private:
-	UPROPERTY(EditAnywhere,meta=(AllowPrivateAccess = "true"))		// 后面去掉UPROPETY 当前没初始化
+	UPROPERTY(EditAnywhere,meta=(AllowPrivateAccess = "true"),Replicated)		// 后面去掉UPROPETY 当前没初始化
 	EWeaponType ActiveWeapon;	// 当前使用武器类型
 	
 	UPROPERTY(meta=(AllowPrivateAccess = "true"))

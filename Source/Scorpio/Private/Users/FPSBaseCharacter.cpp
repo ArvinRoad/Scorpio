@@ -55,6 +55,7 @@ void AFPSBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(AFPSBaseCharacter,IsFiring,COND_None);
 	DOREPLIFETIME_CONDITION(AFPSBaseCharacter,IsReloading,COND_None);
+	DOREPLIFETIME_CONDITION(AFPSBaseCharacter,ActiveWeapon,COND_None);
 }
 
 void AFPSBaseCharacter::Tick(float DeltaTime)
@@ -251,8 +252,17 @@ void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 			SpawnInfo.Owner = this;
 			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			ClientPrimaryWeapon = GetWorld()->SpawnActor<AWeaponBaseClien>(ServerPrimaryWeapon->ClientWeaponBaseBPClass,GetActorTransform(),SpawnInfo);
-			ClientPrimaryWeapon->K2_AttachToComponent(FPArmsMesh,TEXT("WeaponSocket"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);
+			FName WeaponSocketName = TEXT("WeaponSocket");
+			if(ActiveWeapon == EWeaponType::M4A1) {
+				WeaponSocketName = TEXT("M4A1_Socket");
+			}
+			ClientPrimaryWeapon->K2_AttachToComponent(FPArmsMesh,WeaponSocketName,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 不同武器插槽不一样
 			ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
+
+			/* 手臂动画混合 */
+			if(ClientPrimaryWeapon) {
+				UpdateFPArmsBlendPose(ClientPrimaryWeapon->FPArmsBlendPose);
+			}
 		}
 	}
 }
@@ -329,7 +339,7 @@ void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
 void AFPSBaseCharacter::StartWithKindOfWeapon() {
 	/* 判断当前代码对人物是否有主控权，有主控权就是在服务器下发的指令 如果是服务器就购买武器 */
 	if(HasAuthority()) {
-		PurchaseWeapon(EWeaponType::AK47);	// 开局枪类型
+		PurchaseWeapon(TestStartWeapon);	// 开局枪类型
 	}
 }
 
@@ -344,6 +354,16 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/AK47/ServerBP_AK47.ServerBP_AK47_C'"));	// 引用后加上_C才能获取(代表一个Class)
 				AWeaponBaseServer* ServerWeapon =  GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
 				ServerWeapon->EquipWeapon();	// 主动卸载碰撞
+				ActiveWeapon = EWeaponType::AK47;
+				EquipPrimary(ServerWeapon);
+			}
+			break;
+		case EWeaponType::M4A1: {
+				/* 动态获取M4A1 Server类 */
+				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/M4A1/ServerBP_M4A1.ServerBP_M4A1_C'"));
+				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
+				ServerWeapon->EquipWeapon();
+				ActiveWeapon = EWeaponType::M4A1;
 				EquipPrimary(ServerWeapon);
 			}
 			break;
