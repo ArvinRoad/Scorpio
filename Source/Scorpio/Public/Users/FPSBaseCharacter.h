@@ -71,7 +71,7 @@ public:
 	void UpdateFPArmsBlendPose(int NewIndex);
 	
 private:
-	UPROPERTY(EditAnywhere,meta=(AllowPrivateAccess = "true"),Replicated)		// 后面去掉UPROPETY 当前没初始化
+	UPROPERTY(meta=(AllowPrivateAccess = "true"),Replicated)		// 后面去掉UPROPETY 当前没初始化
 	EWeaponType ActiveWeapon;	// 当前使用武器类型
 	
 	UPROPERTY(meta=(AllowPrivateAccess = "true"))

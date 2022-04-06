@@ -376,6 +376,15 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				EquipPrimary(ServerWeapon);
 			}
 			break;
+		case EWeaponType::MP7: {
+				/* 动态获取MP7 Server类 */
+				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/MP7/ServerBP_MP7.ServerBP_MP7_C'"));
+				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
+				ServerWeapon->EquipWeapon();
+				ActiveWeapon = EWeaponType::MP7;
+				EquipPrimary(ServerWeapon);
+			}
+			break;
 		default: {
 				
 			}
@@ -390,6 +399,9 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 		case EWeaponType::M4A1: {
 				return ClientPrimaryWeapon;
 			}
+		case EWeaponType::MP7: {
+				return ClientPrimaryWeapon;
+			}
 	}
 	return nullptr;
 }
@@ -400,6 +412,9 @@ AWeaponBaseServer* AFPSBaseCharacter::GetCurrentServerTPBodysWeaponAtcor() {
 				return ServerPrimaryWeapon;
 			}
 		case EWeaponType::M4A1: {
+				return ServerPrimaryWeapon;
+			}
+		case EWeaponType::MP7: {
 				return ServerPrimaryWeapon;
 			}
 	}
