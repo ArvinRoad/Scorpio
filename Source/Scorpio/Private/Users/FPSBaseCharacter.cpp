@@ -289,12 +289,18 @@ void AFPSBaseCharacter::InputFirePressed() {
 		case EWeaponType::AK47: {
 				FireWeaponPrimary();
 			}
+		case EWeaponType::M4A1: {
+				FireWeaponPrimary();
+			}
 	}
 }
 void AFPSBaseCharacter::InputFireReleased() {
 	/* 根据当前武器类型选择方法 */
 	switch (ActiveWeapon) {
 		case EWeaponType::AK47: {
+				StopFirePrimary();
+			}
+		case EWeaponType::M4A1: {
 				StopFirePrimary();
 			}
 	}
@@ -313,6 +319,9 @@ void AFPSBaseCharacter::InputReload() {
 		if(!IsFiring) {
 			switch (ActiveWeapon) {
 				case EWeaponType::AK47: {
+						ServerReloadPrimary();
+					}
+				case EWeaponType::M4A1: {
 						ServerReloadPrimary();
 					}
 			}
@@ -378,6 +387,9 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 		case EWeaponType::AK47: {
 				return ClientPrimaryWeapon;
 			}
+		case EWeaponType::M4A1: {
+				return ClientPrimaryWeapon;
+			}
 	}
 	return nullptr;
 }
@@ -385,6 +397,9 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 AWeaponBaseServer* AFPSBaseCharacter::GetCurrentServerTPBodysWeaponAtcor() {
 	switch(ActiveWeapon) {
 		case EWeaponType::AK47: {
+				return ServerPrimaryWeapon;
+			}
+		case EWeaponType::M4A1: {
 				return ServerPrimaryWeapon;
 			}
 	}
