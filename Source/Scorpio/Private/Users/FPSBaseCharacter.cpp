@@ -292,6 +292,9 @@ void AFPSBaseCharacter::InputFirePressed() {
 		case EWeaponType::M4A1: {
 				FireWeaponPrimary();
 			}
+		case EWeaponType::MP7: {
+				FireWeaponPrimary();
+			}
 	}
 }
 void AFPSBaseCharacter::InputFireReleased() {
@@ -301,6 +304,9 @@ void AFPSBaseCharacter::InputFireReleased() {
 				StopFirePrimary();
 			}
 		case EWeaponType::M4A1: {
+				StopFirePrimary();
+			}
+		case EWeaponType::MP7: {
 				StopFirePrimary();
 			}
 	}
@@ -322,6 +328,9 @@ void AFPSBaseCharacter::InputReload() {
 						ServerReloadPrimary();
 					}
 				case EWeaponType::M4A1: {
+						ServerReloadPrimary();
+					}
+				case EWeaponType::MP7: {
 						ServerReloadPrimary();
 					}
 			}
