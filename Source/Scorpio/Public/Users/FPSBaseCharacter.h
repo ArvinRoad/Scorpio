@@ -65,6 +65,7 @@ protected:
 #pragma region Weapon
 public:
 	void EquipPrimary(AWeaponBaseServer* WeaponBaseServer);	// 主武器
+	void EquipSecondary(AWeaponBaseServer* WeaponBaseServer);	// 副武器
 
 	/* 手臂混合动画方法 */
 	UFUNCTION(BlueprintImplementableEvent)
@@ -80,6 +81,13 @@ private:
 	/* 接收ServerPrimaryWeapon  */
 	UPROPERTY(meta=(AllowPrivateAccess = "true"))
 	AWeaponBaseClien* ClientPrimaryWeapon;
+
+	UPROPERTY(meta=(AllowPrivateAccess = "true"))
+	AWeaponBaseServer* ServerSecondaryWeapon;	//	服务器副武器的指针
+
+	/* 接收ServerSecondaryWeapon */
+	UPROPERTY(meta=(AllowPrivateAccess = "true"))
+	AWeaponBaseClien* ClientSecondaryWeapon;
 
 	/* 使用某个枪开始 */
 	void StartWithKindOfWeapon();
@@ -192,9 +200,13 @@ public:
 	void MultiSpawnBulletDecal_Implementation(FVector Location,FRotator Rotation);
 	bool MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation);
 
-	/* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
+	/* 动态创建第一人称客户端主武器 服务器下发客户端 服务器不需要生成 */
 	UFUNCTION(Client,Reliable)
 	void ClientEquipFPArmsPrimary();
+
+	/* 动态创建第一人称客户端副武器 服务器下发客户端 服务器不需要生成 */
+	UFUNCTION(Client,Reliable)
+	void ClientEquipFPArmsSecondary();
 
 	/* 枪体动画 */
 	UFUNCTION(Client,Reliable)

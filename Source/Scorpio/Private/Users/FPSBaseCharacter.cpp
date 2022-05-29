@@ -266,6 +266,27 @@ void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 		}
 	}
 }
+void AFPSBaseCharacter::ClientEquipFPArmsSecondary_Implementation() {
+	if(ServerSecondaryWeapon) {
+		/* 如果客户端以及有了 那就不用创建了 */
+		if(ClientSecondaryWeapon) {
+			
+		}else {
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Owner = this;
+			SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			ClientSecondaryWeapon = GetWorld()->SpawnActor<AWeaponBaseClien>(ServerSecondaryWeapon->ClientWeaponBaseBPClass,GetActorTransform(),SpawnInfo);
+			FName WeaponSocketName = TEXT("WeaponSocket");
+			ClientSecondaryWeapon->K2_AttachToComponent(FPArmsMesh,WeaponSocketName,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 不同武器插槽不一样
+			ClientUpdateAmmoUI(ServerSecondaryWeapon->ClipCurrentAmmo,ServerSecondaryWeapon->GunCurrentAmmo);	// 弹药更新
+
+			/* 手臂动画混合 */
+			if(ClientSecondaryWeapon) {
+				UpdateFPArmsBlendPose(ClientSecondaryWeapon->FPArmsBlendPose);
+			}
+		}
+	}
+}
 #pragma endregion 
 
 /* 键盘输入事件 */
@@ -341,7 +362,7 @@ void AFPSBaseCharacter::InputReload() {
 #pragma endregion
 
 #pragma region Weapon
-/* 玩家装备武器 */
+/* 玩家装备主武器 */
 void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
 	if(ServerPrimaryWeapon) {
 		
@@ -350,6 +371,18 @@ void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
 		ServerPrimaryWeapon->SetOwner(this);
 		ServerPrimaryWeapon->K2_AttachToComponent(Mesh,TEXT("Weapon_Rifle"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 添加到第三人称上
 		ClientEquipFPArmsPrimary();	// 让客户端去生成
+	}
+}
+
+/* 玩家装备副武器 */
+void AFPSBaseCharacter::EquipSecondary(AWeaponBaseServer* WeaponBaseServer) {
+	if(ServerSecondaryWeapon) {
+		
+	}else {
+		ServerSecondaryWeapon = WeaponBaseServer;
+		ServerSecondaryWeapon->SetOwner(this);
+		ServerSecondaryWeapon->K2_AttachToComponent(Mesh,TEXT("Weapon_Rifle"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 添加到第三人称上
+		ClientEquipFPArmsSecondary();	// 让客户端去生成
 	}
 }
 
@@ -394,6 +427,14 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				EquipPrimary(ServerWeapon);
 			}
 			break;
+		case EWeaponType::DesertEagle: {
+				/* 动态获取DesertEagle Server类 */
+				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/DesertEagle/ServerBP_DesertEagle.ServerBP_DesertEagle_C'"));
+				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
+				ServerWeapon->EquipWeapon();
+				ActiveWeapon = EWeaponType::DesertEagle;
+				EquipSecondary(ServerWeapon);
+			}
 		default: {
 				
 			}
