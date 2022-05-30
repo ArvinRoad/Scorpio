@@ -111,6 +111,23 @@ void AFPSBaseCharacter::ServerFireRifleWeapon_Implementation(FVector CameraLocat
 bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
 	return true;
 }
+
+void AFPSBaseCharacter::ServerFirePistolWeapon_Implementation(FVector CameraLocation, FRotator CameraRotation,bool IsMoving) {
+	if(ServerSecondaryWeapon) {
+		/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
+		ServerSecondaryWeapon->MultShootingEffect();
+		ServerSecondaryWeapon->ClipCurrentAmmo -= 1;	// 开枪减少子弹
+		MultShooting(); // 多播 身体射击动画蒙太奇
+		ClientUpdateAmmoUI(ServerSecondaryWeapon->ClipCurrentAmmo,ServerSecondaryWeapon->GunCurrentAmmo);	// 弹药更新
+		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerPrimaryWeapon->ClipCurrentAmmo: %d"),ServerPrimaryWeapon->ClipCurrentAmmo)); // DeBug输出子弹数
+	}
+	IsFiring = true;	// 正在射击
+	PistolLineTrace(CameraLocation,CameraRotation,IsMoving);	// 射线检测
+}
+bool AFPSBaseCharacter::ServerFirePistolWeapon_Validate(FVector CameraLocation, FRotator CameraRotation, bool IsMoving) {
+	return true;
+}
+
 void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
 	if(ServerPrimaryWeapon) {
 		if(ServerPrimaryWeapon->GunCurrentAmmo > 0 && ServerPrimaryWeapon->ClipCurrentAmmo < ServerPrimaryWeapon->MaxClipAmmo) {
@@ -143,9 +160,10 @@ bool AFPSBaseCharacter::ServerStopFiring_Validate() {
 }
 
 void AFPSBaseCharacter::MultShooting_Implementation() {
+	AWeaponBaseServer* CurrentServerWeapon = GetCurrentServerTPBodysWeaponAtcor();
 	if(ServerBodysAnimBP) {
-		if(ServerPrimaryWeapon) {
-			ServerBodysAnimBP->Montage_Play(ServerPrimaryWeapon->ServerTPBodysShootAnimMontage);
+		if(CurrentServerWeapon) {
+			ServerBodysAnimBP->Montage_Play(CurrentServerWeapon->ServerTPBodysShootAnimMontage);
 		}
 	}
 }
@@ -166,8 +184,9 @@ bool AFPSBaseCharacter::MultiReloadAnimation_Validate() {
 }
 
 void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FRotator Rotation) {
-	if(ServerPrimaryWeapon) {
-		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(),ServerPrimaryWeapon->BulletDecalMaterial,FVector(8,8,8),Location,Rotation,10);	// 生成弹孔
+	AWeaponBaseServer* CurrentServerWeapon = GetCurrentServerTPBodysWeaponAtcor();
+	if(CurrentServerWeapon) {
+		UDecalComponent* Decal = UGameplayStatics::SpawnDecalAtLocation(GetWorld(),CurrentServerWeapon->BulletDecalMaterial,FVector(8,8,8),Location,Rotation,10);	// 生成弹孔
 		if(Decal) {
 			Decal->SetFadeScreenSize(0.001);	// 修改弹孔可见距离
 		}
@@ -316,6 +335,9 @@ void AFPSBaseCharacter::InputFirePressed() {
 		case EWeaponType::MP7: {
 				FireWeaponPrimary();
 			}
+		case EWeaponType::DesertEagle: {
+				FireWeaponSecondary();
+			}
 	}
 }
 void AFPSBaseCharacter::InputFireReleased() {
@@ -329,6 +351,9 @@ void AFPSBaseCharacter::InputFireReleased() {
 			}
 		case EWeaponType::MP7: {
 				StopFirePrimary();
+			}
+		case EWeaponType::DesertEagle: {
+				StopFireSecondary();
 			}
 	}
 	
@@ -452,6 +477,9 @@ AWeaponBaseClien* AFPSBaseCharacter::GetCurrentClientFPArmsWeaponAction(){
 		case EWeaponType::MP7: {
 				return ClientPrimaryWeapon;
 			}
+		case EWeaponType::DesertEagle: {
+				return ClientSecondaryWeapon;
+			}
 	}
 	return nullptr;
 }
@@ -466,6 +494,9 @@ AWeaponBaseServer* AFPSBaseCharacter::GetCurrentServerTPBodysWeaponAtcor() {
 			}
 		case EWeaponType::MP7: {
 				return ServerPrimaryWeapon;
+			}
+		case EWeaponType::DesertEagle: {
+				return ServerSecondaryWeapon;
 			}
 	}
 	return nullptr;
@@ -543,6 +574,68 @@ void AFPSBaseCharacter::RifleLineTrace(FVector CameraLocation, FRotator CameraRo
 			EndLocation = FVector(Vector.X + RandomX,Vector.Y + RandomY,Vector.Z + RandomZ);
 		}else {
 			EndLocation = CameraLocation + CameraForwardVector * ServerPrimaryWeapon->BulletDistance;
+		}
+	}
+	/**
+	 *  第五个为 false 目前为简单的碰撞  true为复杂碰撞
+	 *  第七个为是否画出射击检测的DeBug线 Persistent 永久画出测试使用 改为 None则关闭
+	 *  第十个为DeBug 线颜色 FLinearColor::Red
+	 *  第十一个为击中后颜色 FLinearColor::Green
+	 *  最后一个是DeBug线存在时间，目前为永久
+	 */
+	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(GetWorld(),CameraLocation,EndLocation,ETraceTypeQuery::TraceTypeQuery1,false,IgnoreArray,EDrawDebugTrace::None,HitResult,true,FLinearColor::Red,FLinearColor::Green,3.f);	
+
+	/* 如果射线检测成功了去实现方法：打到玩家应用伤害 打到墙生成弹孔 打到可破坏墙就破碎 */
+	if(HitSuccess) {
+		//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("Hit Actor Name : %s"),*HitResult.GetActor()->GetName()));	// 射线检测日志
+		AFPSBaseCharacter* FPSCharacter = Cast<AFPSBaseCharacter>(HitResult.GetActor());		// 接收检测玩家
+		if(FPSCharacter) {
+			// 打到玩家应用伤害
+			DamagePlayer(HitResult.PhysMaterial.Get(),HitResult.GetActor(),CameraLocation,HitResult);
+		} else {
+			// 打到非玩家广播弹孔
+			FRotator XRotator = UKismetMathLibrary::MakeRotFromX(HitResult.Normal);	// 让弹孔Rotation与模型法线方向一致
+			MultiSpawnBulletDecal(HitResult.Location,XRotator);
+		}
+	}
+}
+
+/* 手枪相关射击方法 */
+void AFPSBaseCharacter::FireWeaponSecondary() {
+	// 判断弹匣子弹是否足够 | 换弹前强制射击去掉 !IsReloading
+	if(ServerSecondaryWeapon->ClipCurrentAmmo>0 && !IsReloading) {
+		// 服务端：减少弹药 | 射线检测 (三种) | 伤害应用 | 弹孔生成 枪口特效 射击声效
+		if(UKismetMathLibrary::VSize(GetVelocity()) > 0.1f) {
+			ServerFirePistolWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),true);
+		} else {
+			ServerFirePistolWeapon(PlayerCamera->GetComponentLocation(),PlayerCamera->GetComponentRotation(),false);	// 先传一个不移动(后面判断是否移动)
+		}
+		ClientFire();
+	} else {
+		// 子弹卡壳声效
+	}
+}
+void AFPSBaseCharacter::StopFireSecondary() {
+	// 更改IsFiring变量
+	ServerStopFiring();
+}
+void AFPSBaseCharacter::PistolLineTrace(FVector CameraLocation, FRotator CameraRotation, bool IsMoving){
+	FVector EndLocation;
+	FVector CameraForwardVector =  UKismetMathLibrary::GetForwardVector(CameraRotation);	// 前向向量
+	TArray<AActor*> IgnoreArray;	// 要被忽略的碰撞检测数组
+	IgnoreArray.Add(this);
+	FHitResult HitResult;	// 接收射线检测后结果
+
+	if(ServerSecondaryWeapon) {
+		/* EndLocation计算方法 IsMoving 是否移动会导致不同的EndLocation计算 */
+		if(IsMoving) {
+			FVector Vector = CameraLocation + CameraForwardVector * ServerSecondaryWeapon->BulletDistance;
+			float RandomX = UKismetMathLibrary::RandomFloatInRange(-ServerSecondaryWeapon->MovingFireRandomRange,ServerSecondaryWeapon->MovingFireRandomRange);
+			float RandomY = UKismetMathLibrary::RandomFloatInRange(-ServerSecondaryWeapon->MovingFireRandomRange,ServerSecondaryWeapon->MovingFireRandomRange);
+			float RandomZ = UKismetMathLibrary::RandomFloatInRange(-ServerSecondaryWeapon->MovingFireRandomRange,ServerSecondaryWeapon->MovingFireRandomRange);
+			EndLocation = FVector(Vector.X + RandomX,Vector.Y + RandomY,Vector.Z + RandomZ);
+		}else {
+			EndLocation = CameraLocation + CameraForwardVector * ServerSecondaryWeapon->BulletDistance;
 		}
 	}
 	/**

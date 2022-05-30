@@ -132,7 +132,10 @@ public:
 	/* 狙击枪相关射击方法 */
 	
 	/* 手枪相关射击方法 */
-
+	void FireWeaponSecondary();	// 手枪设计方法
+	void StopFireSecondary();	// 手枪停止射击回复事件
+	void PistolLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 手枪射线检测
+	
 	/* Reload */
 	UPROPERTY(Replicated)
 	bool IsFiring;
@@ -164,12 +167,18 @@ public:
 	void ServerNormalSpeedWalkAction_Implementation();
 	bool ServerNormalSpeedWalkAction_Validate();
 
-	/* 射击方法 */
+	/* 步枪射击方法 */
 	UFUNCTION(Server,Reliable,WithValidation)
 	void ServerFireRifleWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	void ServerFireRifleWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	bool ServerFireRifleWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 
+	/* 手枪射击方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerFirePistolWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	void ServerFirePistolWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	bool ServerFirePistolWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	
 	/* 换弹方法 */
 	UFUNCTION(Server,Reliable,WithValidation)
 	void ServerReloadPrimary();
