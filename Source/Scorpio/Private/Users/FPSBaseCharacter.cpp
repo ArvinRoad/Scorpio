@@ -310,6 +310,9 @@ void AFPSBaseCharacter::ClientEquipFPArmsPrimary_Implementation() {
 			if(ActiveWeapon == EWeaponType::M4A1) {
 				WeaponSocketName = TEXT("M4A1_Socket");
 			}
+			if (ActiveWeapon == EWeaponType::Sniper) {
+				WeaponSocketName = TEXT("AWP_Socket");
+			}
 			ClientPrimaryWeapon->K2_AttachToComponent(FPArmsMesh,WeaponSocketName,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 不同武器插槽不一样
 			ClientUpdateAmmoUI(ServerPrimaryWeapon->ClipCurrentAmmo,ServerPrimaryWeapon->GunCurrentAmmo);	// 弹药更新
 
@@ -498,6 +501,15 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				ActiveWeapon = EWeaponType::DesertEagle;
 				EquipSecondary(ServerWeapon);
 			}
+		case EWeaponType::Sniper: {
+				/* 动态获取Sniper Server类 */
+				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/Sniper/ServerBP_Sniper.ServerBP_Sniper_C'"));
+				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
+				ServerWeapon->EquipWeapon();
+				ActiveWeapon = EWeaponType::Sniper;
+				EquipPrimary(ServerWeapon);
+			}
+			break;
 		default: {
 				
 			}
