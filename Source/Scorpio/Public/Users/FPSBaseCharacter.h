@@ -186,11 +186,17 @@ public:
 	void ServerFirePistolWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	bool ServerFirePistolWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	
-	/* 换弹方法 */
+	/* 步枪换弹方法 */
 	UFUNCTION(Server,Reliable,WithValidation)
 	void ServerReloadPrimary();
 	void ServerReloadPrimary_Implementation();
 	bool ServerReloadPrimary_Validate();
+
+	/* 手枪换挡方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerReloadSecondary();
+	void ServerReloadSecondary_Implementation();
+	bool ServerReloadSecondary_Validate();
 	
 	/* 射击停止状态方法 */
 	UFUNCTION(Server,Reliable,WithValidation)

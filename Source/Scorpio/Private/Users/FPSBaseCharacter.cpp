@@ -121,7 +121,7 @@ void AFPSBaseCharacter::ServerFirePistolWeapon_Implementation(FVector CameraLoca
 		ActionInfo.UUID = FMath::Rand();	// Action 的ID
 		ActionInfo.Linkage = 0;	// 不能为-1,否则无法执行
 		UKismetSystemLibrary::Delay(this,ServerSecondaryWeapon->SpreadWeaponCallBackRate,ActionInfo);
-		UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerFirePistolWeapon_Implementation")));	// 测试换弹是否成功日志
+		//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerFirePistolWeapon_Implementation")));	// 测试换弹是否成功日志
 		
 		/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
 		ServerSecondaryWeapon->MultShootingEffect();
@@ -137,6 +137,7 @@ bool AFPSBaseCharacter::ServerFirePistolWeapon_Validate(FVector CameraLocation, 
 	return true;
 }
 
+/* 换弹方法 */
 void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
 	if(ServerPrimaryWeapon) {
 		if(ServerPrimaryWeapon->GunCurrentAmmo > 0 && ServerPrimaryWeapon->ClipCurrentAmmo < ServerPrimaryWeapon->MaxClipAmmo) {
@@ -161,6 +162,31 @@ void AFPSBaseCharacter::ServerReloadPrimary_Implementation() {
 bool AFPSBaseCharacter::ServerReloadPrimary_Validate() {
 	return true;
 }
+void AFPSBaseCharacter::ServerReloadSecondary_Implementation() {
+	if(ServerSecondaryWeapon) {
+		if(ServerSecondaryWeapon->GunCurrentAmmo > 0 && ServerSecondaryWeapon->ClipCurrentAmmo < ServerSecondaryWeapon->MaxClipAmmo) {
+			/* 客户端: 手臂动画 | 数据更新 | UI更新 */
+			ClientReload();
+			/* 服务器：多播身体动画 | 数据更新 | UI更新 */
+			MultiReloadAnimation();
+			IsReloading = true;
+			// 延迟
+			if(ClientSecondaryWeapon) {
+				FLatentActionInfo ActionInfo;
+				ActionInfo.CallbackTarget =	this;	// 执行者
+				ActionInfo.ExecutionFunction = TEXT("DelayPlayArmReloadCallBack");	// 执行的方法
+				ActionInfo.UUID = FMath::Rand();	// Action 的ID
+				ActionInfo.Linkage = 0;	// 不能为-1,否则无法执行
+				UKismetSystemLibrary::Delay(this,ClientSecondaryWeapon->ClientArmsReloadAnimMontage->GetPlayLength(),ActionInfo);
+				//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerReloadPrimary_Implementation"))); // 测试换弹是否成功日志
+			}
+		}
+	}
+}
+bool AFPSBaseCharacter::ServerReloadSecondary_Validate() {
+	return true;
+}
+
 void AFPSBaseCharacter::ServerStopFiring_Implementation() {
 	IsFiring = false;	// 非射击状态
 }
@@ -387,6 +413,9 @@ void AFPSBaseCharacter::InputReload() {
 					}
 				case EWeaponType::MP7: {
 						ServerReloadPrimary();
+					}
+				case EWeaponType::DesertEagle: {
+						ServerReloadSecondary();
 					}
 			}
 		}
@@ -689,22 +718,25 @@ void AFPSBaseCharacter::PistolLineTrace(FVector CameraLocation, FRotator CameraR
 
 /* 步枪换弹动画后的回调 */
 void AFPSBaseCharacter::DelayPlayArmReloadCallBack() {
-	int32 GunCurrentAmmo = ServerPrimaryWeapon->GunCurrentAmmo;
-	int32 ClipCurrentAmmo = ServerPrimaryWeapon->ClipCurrentAmmo;
-	int32 const MaxClipAmmo = ServerPrimaryWeapon->MaxClipAmmo;
-	IsReloading = false;
-	// 是否装填全部枪体子弹
-	if(MaxClipAmmo - ClipCurrentAmmo >= GunCurrentAmmo) {
-		ClipCurrentAmmo += GunCurrentAmmo;
-		GunCurrentAmmo = 0;
-	} else {
-		GunCurrentAmmo -= MaxClipAmmo - ClipCurrentAmmo;
-		ClipCurrentAmmo = MaxClipAmmo;
+	AWeaponBaseServer* CurrentServerWeapon = GetCurrentServerTPBodysWeaponAtcor();
+	if (CurrentServerWeapon) {
+		int32 GunCurrentAmmo = CurrentServerWeapon->GunCurrentAmmo;
+		int32 ClipCurrentAmmo = CurrentServerWeapon->ClipCurrentAmmo;
+		int32 const MaxClipAmmo = CurrentServerWeapon->MaxClipAmmo;
+		IsReloading = false;
+		// 是否装填全部枪体子弹
+		if(MaxClipAmmo - ClipCurrentAmmo >= GunCurrentAmmo) {
+			ClipCurrentAmmo += GunCurrentAmmo;
+			GunCurrentAmmo = 0;
+		} else {
+			GunCurrentAmmo -= MaxClipAmmo - ClipCurrentAmmo;
+			ClipCurrentAmmo = MaxClipAmmo;
+		}
+		CurrentServerWeapon->GunCurrentAmmo = GunCurrentAmmo;
+		CurrentServerWeapon->ClipCurrentAmmo = ClipCurrentAmmo;
+		ClientUpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
+		//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("DelayPlayArmReloadCallBack()")));
 	}
-	ServerPrimaryWeapon->GunCurrentAmmo = GunCurrentAmmo;
-	ServerPrimaryWeapon->ClipCurrentAmmo = ClipCurrentAmmo;
-	ClientUpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
-	//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("DelayPlayArmReloadCallBack()")));
 }
 /* 手枪换弹动画后的回调 */
 void AFPSBaseCharacter::DelaySpreadWeaponShootCallBack() {
