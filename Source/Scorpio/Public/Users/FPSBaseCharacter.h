@@ -123,6 +123,10 @@ public:
 	float NewHorizontalRecoilAmount;
 	float OldHorizontalRecoilAmount;
 	float HorizontalRecoilAmount;
+
+	/* 手枪射击后坐力偏移值变量 */
+	float PistolSpreadMin = 0;
+	float PistolSpreadMax = 0;
 	
 	/* 步枪相关射击方法 */
 	void FireWeaponPrimary();	// 步枪射击方法
@@ -143,7 +147,10 @@ public:
 	bool IsReloading;
 	
 	UFUNCTION()
-	void DelayPlayArmReloadCallBack();	// 换弹动画后的回调
+	void DelayPlayArmReloadCallBack();	// 步枪换弹动画后的回调 计时器回调
+
+	UFUNCTION()
+	void DelaySpreadWeaponShootCallBack();	// 手枪换弹动画后的回调 计时器回调
 	
 	void DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo);	// 玩家伤害(五个部位)
 	UFUNCTION()

@@ -114,6 +114,15 @@ bool AFPSBaseCharacter::ServerFireRifleWeapon_Validate(FVector CameraLocation, F
 
 void AFPSBaseCharacter::ServerFirePistolWeapon_Implementation(FVector CameraLocation, FRotator CameraRotation,bool IsMoving) {
 	if(ServerSecondaryWeapon) {
+		/* 计时器：重置后坐力算法参数 */
+		FLatentActionInfo ActionInfo;
+		ActionInfo.CallbackTarget = this;	// 执行者
+		ActionInfo.ExecutionFunction = TEXT("DelaySpreadWeaponShootCallBack");	// 执行的方法
+		ActionInfo.UUID = FMath::Rand();	// Action 的ID
+		ActionInfo.Linkage = 0;	// 不能为-1,否则无法执行
+		UKismetSystemLibrary::Delay(this,ServerSecondaryWeapon->SpreadWeaponCallBackRate,ActionInfo);
+		UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("ServerFirePistolWeapon_Implementation")));	// 测试换弹是否成功日志
+		
 		/* 服务端逻辑对标：ClientFire_Implementation 多播(必须在服务器调用 | 什么调用什么多播) */
 		ServerSecondaryWeapon->MultShootingEffect();
 		ServerSecondaryWeapon->ClipCurrentAmmo -= 1;	// 开枪减少子弹
@@ -619,9 +628,11 @@ void AFPSBaseCharacter::StopFireSecondary() {
 	// 更改IsFiring变量
 	ServerStopFiring();
 }
+
+/* 射线检测 */
 void AFPSBaseCharacter::PistolLineTrace(FVector CameraLocation, FRotator CameraRotation, bool IsMoving){
 	FVector EndLocation;
-	FVector CameraForwardVector =  UKismetMathLibrary::GetForwardVector(CameraRotation);	// 前向向量
+	FVector CameraForwardVector;	// 前向向量
 	TArray<AActor*> IgnoreArray;	// 要被忽略的碰撞检测数组
 	IgnoreArray.Add(this);
 	FHitResult HitResult;	// 接收射线检测后结果
@@ -629,12 +640,23 @@ void AFPSBaseCharacter::PistolLineTrace(FVector CameraLocation, FRotator CameraR
 	if(ServerSecondaryWeapon) {
 		/* EndLocation计算方法 IsMoving 是否移动会导致不同的EndLocation计算 */
 		if(IsMoving) {
+			FRotator  Rotator;
+			Rotator.Roll = CameraRotation.Roll;
+			Rotator.Pitch = CameraRotation.Pitch + UKismetMathLibrary::RandomFloatInRange(PistolSpreadMin,PistolSpreadMax);
+			Rotator.Yaw = CameraRotation.Yaw + UKismetMathLibrary::RandomFloatInRange(PistolSpreadMin,PistolSpreadMax);
+			CameraForwardVector =  UKismetMathLibrary::GetForwardVector(Rotator);	// 前向向量
 			FVector Vector = CameraLocation + CameraForwardVector * ServerSecondaryWeapon->BulletDistance;
 			float RandomX = UKismetMathLibrary::RandomFloatInRange(-ServerSecondaryWeapon->MovingFireRandomRange,ServerSecondaryWeapon->MovingFireRandomRange);
 			float RandomY = UKismetMathLibrary::RandomFloatInRange(-ServerSecondaryWeapon->MovingFireRandomRange,ServerSecondaryWeapon->MovingFireRandomRange);
 			float RandomZ = UKismetMathLibrary::RandomFloatInRange(-ServerSecondaryWeapon->MovingFireRandomRange,ServerSecondaryWeapon->MovingFireRandomRange);
 			EndLocation = FVector(Vector.X + RandomX,Vector.Y + RandomY,Vector.Z + RandomZ);
 		}else {
+			// 旋转随机偏移 根据连续射击快慢决定 连续越快偏移越大
+			FRotator  Rotator;
+			Rotator.Roll = CameraRotation.Roll;
+			Rotator.Pitch = CameraRotation.Pitch + UKismetMathLibrary::RandomFloatInRange(PistolSpreadMin,PistolSpreadMax);
+			Rotator.Yaw = CameraRotation.Yaw + UKismetMathLibrary::RandomFloatInRange(PistolSpreadMin,PistolSpreadMax);
+			CameraForwardVector =  UKismetMathLibrary::GetForwardVector(Rotator);	// 前向向量
 			EndLocation = CameraLocation + CameraForwardVector * ServerSecondaryWeapon->BulletDistance;
 		}
 	}
@@ -645,7 +667,10 @@ void AFPSBaseCharacter::PistolLineTrace(FVector CameraLocation, FRotator CameraR
 	 *  第十一个为击中后颜色 FLinearColor::Green
 	 *  最后一个是DeBug线存在时间，目前为永久
 	 */
-	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(GetWorld(),CameraLocation,EndLocation,ETraceTypeQuery::TraceTypeQuery1,false,IgnoreArray,EDrawDebugTrace::None,HitResult,true,FLinearColor::Red,FLinearColor::Green,3.f);	
+	bool HitSuccess = UKismetSystemLibrary::LineTraceSingle(GetWorld(),CameraLocation,EndLocation,ETraceTypeQuery::TraceTypeQuery1,false,IgnoreArray,EDrawDebugTrace::None,HitResult,true,FLinearColor::Red,FLinearColor::Green,3.f);
+
+	PistolSpreadMax += ServerSecondaryWeapon->SpreadWeaponMaxIndex;
+	PistolSpreadMin -= ServerSecondaryWeapon->SpreadWeaponMinIndex;
 
 	/* 如果射线检测成功了去实现方法：打到玩家应用伤害 打到墙生成弹孔 打到可破坏墙就破碎 */
 	if(HitSuccess) {
@@ -662,7 +687,7 @@ void AFPSBaseCharacter::PistolLineTrace(FVector CameraLocation, FRotator CameraR
 	}
 }
 
-/* 换弹动画后的回调 */
+/* 步枪换弹动画后的回调 */
 void AFPSBaseCharacter::DelayPlayArmReloadCallBack() {
 	int32 GunCurrentAmmo = ServerPrimaryWeapon->GunCurrentAmmo;
 	int32 ClipCurrentAmmo = ServerPrimaryWeapon->ClipCurrentAmmo;
@@ -680,6 +705,11 @@ void AFPSBaseCharacter::DelayPlayArmReloadCallBack() {
 	ServerPrimaryWeapon->ClipCurrentAmmo = ClipCurrentAmmo;
 	ClientUpdateAmmoUI(ClipCurrentAmmo,GunCurrentAmmo);
 	//UKismetSystemLibrary::PrintString(GetWorld(),FString::Printf(TEXT("DelayPlayArmReloadCallBack()")));
+}
+/* 手枪换弹动画后的回调 */
+void AFPSBaseCharacter::DelaySpreadWeaponShootCallBack() {
+	PistolSpreadMin = 0;
+	PistolSpreadMax = 0;
 }
 
 void AFPSBaseCharacter::DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo) {

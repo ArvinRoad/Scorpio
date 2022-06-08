@@ -98,6 +98,15 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float MovingFireRandomRange;	//	跑打的随机范围(偏移值)
+
+	UPROPERTY(EditAnywhere,Category = "SpreadWeaponData")
+	float SpreadWeaponCallBackRate;	// 手枪后坐力计时器参数
+
+	UPROPERTY(EditAnywhere,Category = "SpreadWeaponData")
+	float SpreadWeaponMinIndex;	// 手枪后坐力射击偏移参数(Min)
+
+	UPROPERTY(EditAnywhere,Category = "SpreadWeaponData")
+	float SpreadWeaponMaxIndex;	// 手枪后坐力射击偏移参数(Max)
 	
 	/* 多播 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
