@@ -134,9 +134,18 @@ public:
 	void RifleLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 步枪射线检测
 
 	/* 狙击枪相关射击方法 */
+	void FireWeaponSniper();	// 狙击枪射击方法
+	void StopFireSniper();		// 狙击枪停止回复事件
+	void SniperLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 狙击枪射线检测
+
+	/* 狙击枪是否开镜参数 */
+	UPROPERTY(Replicated)
+	bool IsAiming;
+
+	
 	
 	/* 手枪相关射击方法 */
-	void FireWeaponSecondary();	// 手枪设计方法
+	void FireWeaponSecondary();	// 手枪射击方法
 	void StopFireSecondary();	// 手枪停止射击回复事件
 	void PistolLineTrace(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);	// 手枪射线检测
 	
@@ -151,6 +160,9 @@ public:
 
 	UFUNCTION()
 	void DelaySpreadWeaponShootCallBack();	// 手枪换弹动画后的回调 计时器回调
+
+	UFUNCTION()
+	void DelaySniperShootCallBack();	// 狙击枪换弹动画后的回调 计时器回调
 	
 	void DamagePlayer(UPhysicalMaterial* PhysicalMaterial,AActor* DamagedActor,FVector& HitFromDirection,FHitResult& HitInfo);	// 玩家伤害(五个部位)
 	UFUNCTION()
@@ -180,6 +192,12 @@ public:
 	void ServerFireRifleWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 	bool ServerFireRifleWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
 
+	/* 狙击枪射击方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerFireSniperWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	void ServerFireSniperWeapon_Implementation(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	bool ServerFireSniperWeapon_Validate(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
+	
 	/* 手枪射击方法 */
 	UFUNCTION(Server,Reliable,WithValidation)
 	void ServerFirePistolWeapon(FVector CameraLocation,FRotator CameraRotation,bool IsMoving);
