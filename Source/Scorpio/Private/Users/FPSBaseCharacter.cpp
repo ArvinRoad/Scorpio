@@ -1,5 +1,6 @@
 #include "Scorpio/Public/Users/FPSBaseCharacter.h"
 
+#include "Blueprint/UserWidget.h"
 #include "Components/DecalComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -76,6 +77,8 @@ void AFPSBaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	InputComponent->BindAction(TEXT("Fire"),IE_Pressed,this,&AFPSBaseCharacter::InputFirePressed);
 	InputComponent->BindAction(TEXT("Fire"),IE_Released,this,&AFPSBaseCharacter::InputFireReleased);
 	InputComponent->BindAction(TEXT("Reload"),IE_Pressed,this,&AFPSBaseCharacter::InputReload);
+	InputComponent->BindAction(TEXT("Aiming"),IE_Pressed,this,&AFPSBaseCharacter::InputAimingPressed);
+	InputComponent->BindAction(TEXT("Aiming"),IE_Released,this,&AFPSBaseCharacter::InputAimingReleased);
 	
 	InputComponent->BindAxis(TEXT("MoveForward"),this,&AFPSBaseCharacter::MoveForward);
 	InputComponent->BindAxis(TEXT("MoveRight"),this,&AFPSBaseCharacter::MoveRight);
@@ -223,6 +226,13 @@ bool AFPSBaseCharacter::ServerStopFiring_Validate() {
 	return true;
 }
 
+void AFPSBaseCharacter::ServerSetAiming_Implementation(bool AimingState) {
+	IsAiming = AimingState;
+}
+bool AFPSBaseCharacter::ServerSetAiming_Validate(bool AimingState) {
+	return true;
+}
+
 void AFPSBaseCharacter::MultShooting_Implementation() {
 	AWeaponBaseServer* CurrentServerWeapon = GetCurrentServerTPBodysWeaponAtcor();
 	if(ServerBodysAnimBP) {
@@ -258,6 +268,34 @@ void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FR
 }
 bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation) {
 	return true;
+}
+void AFPSBaseCharacter::ClientAiming_Implementation() {
+	// 瞄准镜的UI 关闭枪体可见 摄像头距离拉远 客户端RPC
+	if(ClientPrimaryWeapon) {
+		ClientPrimaryWeapon->SetActorHiddenInGame(true);
+		if (FPArmsMesh) {
+			FPArmsMesh->SetHiddenInGame(true);
+		}
+		if(PlayerCamera) {
+			PlayerCamera->SetFieldOfView(ClientPrimaryWeapon->FieldOfAimingView);
+		}
+	}
+	WidgetScope = CreateWidget<UUserWidget>(GetWorld(),SniperScopeBPClass);
+	WidgetScope->AddToViewport(); // 直接加载到显示器上
+}
+void AFPSBaseCharacter::ClientEndAiming_Implementation() {
+	if(ClientPrimaryWeapon) {
+		ClientPrimaryWeapon->SetActorHiddenInGame(false);
+		if(FPArmsMesh) {
+			FPArmsMesh->SetHiddenInGame(false);
+		}
+		if (PlayerCamera) {
+			PlayerCamera->SetFieldOfView(90); // 默认值为90
+		}
+	}
+	if(WidgetScope) {
+		WidgetScope->RemoveFromParent();
+	}
 }
 
 void AFPSBaseCharacter::ClientReload_Implementation() {
@@ -431,6 +469,24 @@ void AFPSBaseCharacter::InputFireReleased() {
 	}
 	
 }
+
+void AFPSBaseCharacter::InputAimingPressed() {
+	if(ActiveWeapon == EWeaponType::Sniper) {
+		// 更改 IsAiming 服务器端RPC
+		ServerSetAiming(true);
+		// 瞄准镜的UI 关闭枪体可见 摄像头距离拉远 客户端RPC
+		ClientAiming();
+	}
+}
+void AFPSBaseCharacter::InputAimingReleased() {
+	if(ActiveWeapon == EWeaponType::Sniper) {
+		// 更改 IsAiming 服务器端RPC
+		ServerSetAiming(false);
+		// 删除瞄准镜UI 开启枪体可见 摄像头距离恢复
+		ClientEndAiming();
+	}
+}
+
 void AFPSBaseCharacter::LowSpeedWalkAction() {
 	CharacterMovement->MaxWalkSpeed = 300;
 	ServerLowSpeedWalkAction();
@@ -728,6 +784,7 @@ void AFPSBaseCharacter::SniperLineTrace(FVector CameraLocation, FRotator CameraR
 			}else {
 				EndLocation = CameraLocation + CameraForwardVector * ServerPrimaryWeapon->BulletDistance;
 			}
+			ClientEndAiming();	// 射击结束后自动关镜
 		}else {
 			FVector Vector = CameraLocation + CameraForwardVector * ServerPrimaryWeapon->BulletDistance;
 			float RandomX = UKismetMathLibrary::RandomFloatInRange(-ServerPrimaryWeapon->MovingFireRandomRange,ServerPrimaryWeapon->MovingFireRandomRange);

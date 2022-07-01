@@ -56,6 +56,8 @@ protected:
 	void StopJumpAction();
 	void InputFirePressed();	// 鼠标左键按下的回调
 	void InputFireReleased();	// 鼠标左键松手松手
+	void InputAimingPressed();	// 狙击枪开镜的回调
+	void InputAimingReleased();	// 鼠标左键松手松手
 	void LowSpeedWalkAction();		// 低速
 	void NormalSpeedWalkAction();	// 正常速度
 	void InputReload();	// 换弹方法
@@ -142,7 +144,13 @@ public:
 	UPROPERTY(Replicated)
 	bool IsAiming;
 
-	
+	/* 狙击枪瞄准的UI接收指针 */
+	UPROPERTY(VisibleAnywhere,Category="SniperUI")
+	UUserWidget* WidgetScope;
+
+	/* 狙击枪瞄准UI 接收蓝图类指针 */
+	UPROPERTY(EditAnywhere,Category="SniperUI")
+	TSubclassOf<UUserWidget> SniperScopeBPClass;
 	
 	/* 手枪相关射击方法 */
 	void FireWeaponSecondary();	// 手枪射击方法
@@ -222,6 +230,12 @@ public:
 	void ServerStopFiring_Implementation();
 	bool ServerStopFiring_Validate();
 
+	/* 狙击枪开镜方法 */
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerSetAiming(bool AimingState);
+	void ServerSetAiming_Implementation(bool AimingState);
+	bool ServerSetAiming_Validate(bool AimingState);
+
 	/* 多播 身体射击蒙太奇动画 */
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
 	void MultShooting();
@@ -267,6 +281,14 @@ public:
 	/* 客户端换弹动画方法 */
 	UFUNCTION(Client,Reliable)
 	void ClientReload();
+
+	/* 狙击枪开镜客户端方法 */
+	UFUNCTION(Client,Reliable)
+	void ClientAiming();
+
+	/* 狙击枪开镜回调客户端方法 */
+	UFUNCTION(Client,Reliable)
+	void ClientEndAiming();
 	
 #pragma endregion 
 };

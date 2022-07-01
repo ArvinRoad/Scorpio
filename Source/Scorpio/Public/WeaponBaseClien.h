@@ -38,6 +38,10 @@ public:
 	/* 手臂混合动画 */
 	UPROPERTY(EditAnywhere)
 	int FPArmsBlendPose;
+
+	/* 狙击枪镜头距离设计 */
+	UPROPERTY(EditAnywhere)
+	float FieldOfAimingView;
 	
 protected:
 	virtual void BeginPlay() override;
