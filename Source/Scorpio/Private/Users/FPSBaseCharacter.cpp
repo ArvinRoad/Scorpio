@@ -511,6 +511,9 @@ void AFPSBaseCharacter::InputReload() {
 				case EWeaponType::DesertEagle: {
 						ServerReloadSecondary();
 					}
+				case EWeaponType::Sniper: {
+						ServerReloadPrimary();
+					}
 			}
 		}
 	}
