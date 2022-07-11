@@ -177,6 +177,8 @@ public:
 	void OnHit(AActor* DamagedActor, float Damage, class AController* InstigatedBy, FVector HitLocation, class UPrimitiveComponent* FHitComponent, FName BoneName, FVector ShotFromDirection, const class UDamageType* DamageType, AActor* DamageCauser); // 伤害回调方法
 
 	float Health;	// 角色生命变量
+	
+	void DeathMatchDeath(AActor* DamageActor);	// 死亡竞技死亡方法
 #pragma endregion
 
 	/* 服务器同步交互 */

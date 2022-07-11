@@ -964,7 +964,15 @@ void AFPSBaseCharacter::OnHit(AActor* DamagedActor, float Damage, AController* I
 	ClientUpdateHealthUI(Health);
 	if(Health <= 0 ) {
 		// 死亡逻辑
+		DeathMatchDeath(DamageCauser); // 死亡竞技死亡方法 参数：谁攻击了我
 	}
 	//UKismetSystemLibrary::PrintString(this,FString::Printf(TEXT("PlayerName%s Health : %f"),*GetName(),Health));	// 伤害调试日志
+}
+
+void AFPSBaseCharacter::DeathMatchDeath(AActor* DamageActor) {
+	AFPSPlayerController* FPSPlayerControllerMatch = Cast<AFPSPlayerController>(GetController());
+	if(FPSPlayerControllerMatch) {
+		FPSPlayerControllerMatch->DeathMatchDeath(DamageActor);
+	}
 }
 #pragma endregion
