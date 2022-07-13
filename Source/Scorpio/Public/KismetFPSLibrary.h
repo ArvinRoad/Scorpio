@@ -32,5 +32,12 @@ UCLASS()
 class SCORPIO_API UKismetFPSLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
+
+	/* 排行榜实时排序方法 */
+	UFUNCTION(BlueprintCallable,Category="Sort")
+	static void SortValues(UPARAM(ref)TArray<FDeathMatchPlayerData>& Values);
+
+	/* 手写快速排序法（与项目无关） */
+	static TArray<FDeathMatchPlayerData>& QuickSort(UPARAM(ref)TArray<FDeathMatchPlayerData>& Values,int start,int end);
 	
 };
