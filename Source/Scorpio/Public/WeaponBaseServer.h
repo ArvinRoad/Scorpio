@@ -12,7 +12,8 @@ enum class EWeaponType :uint8 {
 	DesertEagle UMETA(DisplayName = "DesertEagle"),
 	MP7			UMETA(DisplayName = "MP7"),
 	Sniper		UMETA(DisplayName = "Sniper"),
-	M4A1		UMETA(DisplayName = "M4A1")
+	M4A1		UMETA(DisplayName = "M4A1"),
+	EEND
 };
 
 

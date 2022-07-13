@@ -442,15 +442,19 @@ void AFPSBaseCharacter::InputFirePressed() {
 		case EWeaponType::AK47: {
 				FireWeaponPrimary();
 			}
+		break;
 		case EWeaponType::M4A1: {
 				FireWeaponPrimary();
 			}
+		break;
 		case EWeaponType::MP7: {
 				FireWeaponPrimary();
 			}
+		break;
 		case EWeaponType::DesertEagle: {
 				FireWeaponSecondary();
 			}
+		break;
 		case EWeaponType::Sniper: {
 				FireWeaponSniper();
 			}
@@ -462,15 +466,19 @@ void AFPSBaseCharacter::InputFireReleased() {
 		case EWeaponType::AK47: {
 				StopFirePrimary();
 			}
+		break;
 		case EWeaponType::M4A1: {
 				StopFirePrimary();
 			}
+		break;
 		case EWeaponType::MP7: {
 				StopFirePrimary();
 			}
+		break;
 		case EWeaponType::DesertEagle: {
 				StopFireSecondary();
 			}
+		break;
 		case EWeaponType::Sniper: {
 				StopFireSniper();
 			}
@@ -558,7 +566,7 @@ void AFPSBaseCharacter::EquipSecondary(AWeaponBaseServer* WeaponBaseServer) {
 void AFPSBaseCharacter::StartWithKindOfWeapon() {
 	/* 判断当前代码对人物是否有主控权，有主控权就是在服务器下发的指令 如果是服务器就购买武器 */
 	if(HasAuthority()) {
-		PurchaseWeapon(TestStartWeapon);	// 开局枪类型
+		PurchaseWeapon(static_cast<EWeaponType>(UKismetMathLibrary::RandomIntegerInRange(0,static_cast<INT8>(EWeaponType::EEND) - 1)));	// 开局枪类型
 	}
 }
 

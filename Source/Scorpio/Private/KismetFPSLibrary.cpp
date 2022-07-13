@@ -4,8 +4,8 @@
 #include "KismetFPSLibrary.h"
 
 void UKismetFPSLibrary::SortValues(TArray<FDeathMatchPlayerData>& Values) {
-	//Values.Sort( [](const FDeathMatchPlayerData& a,const FDeathMatchPlayerData& b)  {return a.PlayerScore > b.PlayerScore;} );
-	QuickSort(Values,0,Values.Num() - 1);
+	Values.Sort( [](const FDeathMatchPlayerData& a,const FDeathMatchPlayerData& b)  {return a.PlayerScore > b.PlayerScore;} );
+	//QuickSort(Values,0,Values.Num() - 1);
 }
 
 /* 手写快速排序法（与项目无关） */
