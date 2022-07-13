@@ -269,6 +269,14 @@ void AFPSBaseCharacter::MultiSpawnBulletDecal_Implementation(FVector Location,FR
 bool AFPSBaseCharacter::MultiSpawnBulletDecal_Validate(FVector Location,FRotator Rotation) {
 	return true;
 }
+
+void AFPSBaseCharacter::ClientDeathMathDeath_Implementation() {
+	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
+	if(CurrentClientWeapon) {
+		CurrentClientWeapon->Destroy();
+	}
+}
+
 void AFPSBaseCharacter::ClientAiming_Implementation() {
 	// 瞄准镜的UI 关闭枪体可见 摄像头距离拉远 客户端RPC
 	if(ClientPrimaryWeapon) {
@@ -970,6 +978,18 @@ void AFPSBaseCharacter::OnHit(AActor* DamagedActor, float Damage, AController* I
 }
 
 void AFPSBaseCharacter::DeathMatchDeath(AActor* DamageActor) {
+	/* 销毁枪等附属装备 */
+	AWeaponBaseClien* CurrentClientWeapon = GetCurrentClientFPArmsWeaponAction();
+	AWeaponBaseServer* CurrentServerWeapon = GetCurrentServerTPBodysWeaponAtcor();
+	if(CurrentClientWeapon) {
+		CurrentClientWeapon->Destroy();
+	}
+	if(CurrentServerWeapon) {
+		CurrentServerWeapon->Destroy();
+	}
+	ClientDeathMathDeath();
+	
+	/* 调用玩家死亡方法 */
 	AFPSPlayerController* FPSPlayerControllerMatch = Cast<AFPSPlayerController>(GetController());
 	if(FPSPlayerControllerMatch) {
 		FPSPlayerControllerMatch->DeathMatchDeath(DamageActor);

@@ -291,6 +291,10 @@ public:
 	/* 狙击枪开镜回调客户端方法 */
 	UFUNCTION(Client,Reliable)
 	void ClientEndAiming();
+
+	/**/
+	UFUNCTION(Client,Reliable)
+	void ClientDeathMathDeath();
 	
 #pragma endregion 
 };
