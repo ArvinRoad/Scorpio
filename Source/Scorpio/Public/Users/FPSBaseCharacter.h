@@ -15,7 +15,10 @@ class SCORPIO_API AFPSBaseCharacter : public ACharacter
 public:
 	AFPSBaseCharacter();
 
-
+	/* BeginPlay 延迟 */
+	UFUNCTION()
+	void DelayBeginPlayCallBack();
+	
 /**	函数说明：
  *  PlayerCamera 摄像机组件
  *  FPArmsMesh   手臂

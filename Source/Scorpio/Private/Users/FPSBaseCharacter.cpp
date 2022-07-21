@@ -34,6 +34,21 @@ AFPSBaseCharacter::AFPSBaseCharacter()
 	
 }
 
+void AFPSBaseCharacter::DelayBeginPlayCallBack() {
+	FPSPlayerController = Cast<AFPSPlayerController>(GetController());	// 持有AFPSPlayerController类型指针 屏幕抖动
+	if(FPSPlayerController) {
+		FPSPlayerController->CreatePlayerUI();
+	}else {
+		FLatentActionInfo ActionInfo;
+		ActionInfo.CallbackTarget = this;
+		ActionInfo.ExecutionFunction = TEXT("DelayBeginPlayCallBack");
+		ActionInfo.UUID = FMath::Rand();
+		ActionInfo.Linkage = 0;
+		UKismetSystemLibrary::Delay(this,0.5,ActionInfo);
+	}
+	StartWithKindOfWeapon();	// 购买枪支
+}
+
 #pragma region Engine
 void AFPSBaseCharacter::BeginPlay()
 {
@@ -43,13 +58,20 @@ void AFPSBaseCharacter::BeginPlay()
 	IsReloading = false;	// 是否在换弹
 	IsAiming = false;	// 狙击枪开镜
 	OnTakePointDamage.AddDynamic(this,&AFPSBaseCharacter::OnHit);	// 伤害回调
-	StartWithKindOfWeapon();	// 购买枪支(沙漠之鹰)
 	ClientArmsAnimBP = FPArmsMesh->GetAnimInstance();	// 手臂获取动画初始化
 	ServerBodysAnimBP = Mesh->GetAnimInstance();	// 射击全身动画初始化
 	FPSPlayerController = Cast<AFPSPlayerController>(GetController());	// 持有AFPSPlayerController类型指针 屏幕抖动
 	if(FPSPlayerController) {
 		FPSPlayerController->CreatePlayerUI();
+	}else {
+		FLatentActionInfo ActionInfo;
+		ActionInfo.CallbackTarget = this;
+		ActionInfo.ExecutionFunction = TEXT("DelayBeginPlayCallBack");
+		ActionInfo.UUID = FMath::Rand();
+		ActionInfo.Linkage = 0;
+		UKismetSystemLibrary::Delay(this,0.5,ActionInfo);
 	}
+	StartWithKindOfWeapon();	// 购买枪支
 }
 
 /* Replicated 宏实现方法，不需要声明父类是AActor 同步服务端和客户端射击状态 */
@@ -364,10 +386,12 @@ void AFPSBaseCharacter::ClientFire_Implementation() {
 		CurrentClientWeapon->DisplayWeaponEffect();
 
 		/* 屏幕抖动 */
-		FPSPlayerController->PlayerCameraShake(CurrentClientWeapon->CameraShakeClass);
-
-		/* 十字线UI扩散动画 */
-		FPSPlayerController->DoCrosshairRecoil();
+		AFPSPlayerController* ActorFPSPlayerController = Cast<AFPSPlayerController>(GetController());
+		if(ActorFPSPlayerController) {
+			ActorFPSPlayerController->PlayerCameraShake(CurrentClientWeapon->CameraShakeClass);
+			/* 十字线UI扩散动画 */
+			ActorFPSPlayerController->DoCrosshairRecoil();
+		}
 	}
 }
 /* 动态创建第一人称客户端武器 服务器下发客户端 服务器不需要生成 */
@@ -546,6 +570,7 @@ void AFPSBaseCharacter::EquipPrimary(AWeaponBaseServer* WeaponBaseServer) {
 		ServerPrimaryWeapon = WeaponBaseServer;
 		ServerPrimaryWeapon->SetOwner(this);
 		ServerPrimaryWeapon->K2_AttachToComponent(Mesh,TEXT("Weapon_Rifle"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 添加到第三人称上
+		ActiveWeapon = ServerPrimaryWeapon->KindOfWeapon;
 		ClientEquipFPArmsPrimary();	// 让客户端去生成
 	}
 }
@@ -558,6 +583,7 @@ void AFPSBaseCharacter::EquipSecondary(AWeaponBaseServer* WeaponBaseServer) {
 		ServerSecondaryWeapon = WeaponBaseServer;
 		ServerSecondaryWeapon->SetOwner(this);
 		ServerSecondaryWeapon->K2_AttachToComponent(Mesh,TEXT("Weapon_Rifle"),EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,EAttachmentRule::SnapToTarget,true);	// 添加到第三人称上
+		ActiveWeapon = ServerSecondaryWeapon->KindOfWeapon;
 		ClientEquipFPArmsSecondary();	// 让客户端去生成
 	}
 }
@@ -581,7 +607,7 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/AK47/ServerBP_AK47.ServerBP_AK47_C'"));	// 引用后加上_C才能获取(代表一个Class)
 				AWeaponBaseServer* ServerWeapon =  GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
 				ServerWeapon->EquipWeapon();	// 主动卸载碰撞
-				ActiveWeapon = EWeaponType::AK47;
+				//ActiveWeapon = EWeaponType::AK47;
 				EquipPrimary(ServerWeapon);
 			}
 			break;
@@ -590,7 +616,7 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/M4A1/ServerBP_M4A1.ServerBP_M4A1_C'"));
 				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
 				ServerWeapon->EquipWeapon();
-				ActiveWeapon = EWeaponType::M4A1;
+				//ActiveWeapon = EWeaponType::M4A1;
 				EquipPrimary(ServerWeapon);
 			}
 			break;
@@ -599,7 +625,7 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/MP7/ServerBP_MP7.ServerBP_MP7_C'"));
 				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
 				ServerWeapon->EquipWeapon();
-				ActiveWeapon = EWeaponType::MP7;
+				//ActiveWeapon = EWeaponType::MP7;
 				EquipPrimary(ServerWeapon);
 			}
 			break;
@@ -608,7 +634,7 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/DesertEagle/ServerBP_DesertEagle.ServerBP_DesertEagle_C'"));
 				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
 				ServerWeapon->EquipWeapon();
-				ActiveWeapon = EWeaponType::DesertEagle;
+				//ActiveWeapon = EWeaponType::DesertEagle;
 				EquipSecondary(ServerWeapon);
 			}
 		case EWeaponType::Sniper: {
@@ -616,7 +642,7 @@ void AFPSBaseCharacter::PurchaseWeapon(EWeaponType WeaponType) {
 				UClass* BlueprintVar = StaticLoadClass(AWeaponBaseServer::StaticClass(),nullptr,TEXT("Blueprint'/Game/_Scorpio/Blueprint/Weapon/Sniper/ServerBP_Sniper.ServerBP_Sniper_C'"));
 				AWeaponBaseServer* ServerWeapon = GetWorld()->SpawnActor<AWeaponBaseServer>(BlueprintVar,GetActorTransform(),SpawnInfo);
 				ServerWeapon->EquipWeapon();
-				ActiveWeapon = EWeaponType::Sniper;
+				//ActiveWeapon = EWeaponType::Sniper;
 				EquipPrimary(ServerWeapon);
 			}
 			break;
